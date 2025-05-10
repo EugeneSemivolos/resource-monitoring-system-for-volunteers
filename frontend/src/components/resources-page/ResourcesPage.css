@@ -11,12 +11,11 @@
   padding-left: 2rem;
   padding-right: 2rem;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 0;
   border-bottom: 0;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
-  border: 1px solid rgba(25, 118, 210, 0.2);
+  border-bottom: 1px solid rgba(25, 118, 210, 0.2);
   position: relative;
   overflow: hidden;
 }

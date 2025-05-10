@@ -1,0 +1,91 @@
+.volunteers-container {
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+  height: auto;
+}
+
+.volunteers-header-container {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  border-radius: 0.5rem;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: 1px solid rgba(25, 118, 210, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.volunteers-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.volunteers-header-icon {
+  color: #1976d2;
+  font-size: 2.5rem !important;
+  margin: 0 1rem;
+}
+
+/* Matching ResourcesPage header-title style */
+.header-title {
+  text-align: center;
+  color: #1976d2;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  letter-spacing: 0.02em;
+  font-family: "Roboto Condensed", "Helvetica Neue", sans-serif;
+  text-transform: uppercase;
+  font-size: 2rem;
+}
+
+.volunteers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 2rem;
+}
+
+.volunteers-grid-item {
+  display: flex;
+  min-height: 100%;
+}
+
+@media (max-width: 960px) {
+  .volunteers-container {
+    padding-top: 5rem;
+  }
+  
+  .volunteers-header-title {
+    font-size: 1.5rem !important;
+  }
+  
+  .volunteers-header-icon {
+    font-size: 1.8rem !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .volunteers-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .volunteers-header-content {
+    padding: 0.5rem 1rem;
+  }
+  
+  .volunteers-header-title {
+    font-size: 1.3rem !important;
+  }
+  
+  .volunteers-header-icon {
+    font-size: 1.6rem !important;
+    margin: 0 0.5rem;
+  }
+} 

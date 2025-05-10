@@ -10,6 +10,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CategoryIcon from '@mui/icons-material/Category';
 import notFoundImage from '../../../images/not_found.png';
 import './ResourceCard.css';
+import './ResourceCardAnimation.css';
 
 const ResourceCard = ({ resource }) => {
   return (

@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { Typography } from '@mui/material';
 import MainPage from './components/main-page/MainPage';
 import Mission from './components/main-page/mission/Mission';
 import Navigation from './components/navigation/Navigation';
 import ResourcesPage from './components/resources-page/ResourcesPage';
+import VolunteersPage from './components/volunteers-page/VolunteersPage';
 import './App.css';
 
 function App() {
@@ -49,7 +49,7 @@ function App() {
       <div className="content-wrapper">
         {navValue === 0 && <MainPage />}
         {navValue === 1 && <ResourcesPage />}
-        {navValue === 2 && <Typography>Волонтери</Typography>}
+        {navValue === 2 && <VolunteersPage />}
         {navValue === 3 && <Mission />}
       </div>
     </div>
