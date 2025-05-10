@@ -1,0 +1,113 @@
+.app-container {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: rgba(250, 250, 250, 0.85);
+}
+
+.main-title {
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  margin-bottom: 2rem;
+}
+
+.mission-card {
+  margin-top: 1rem;
+}
+
+.user-icon {
+  margin-left: 1rem;
+}
+
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  padding: 0 12px;
+}
+
+/* Базові стилі */
+body, html {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: 'Source Sans 3', 'Open Sans', sans-serif;
+}
+
+/* Типографіка */
+p, .MuiTypography-body1, .MuiTypography-body2 {
+  font-family: 'Nunito', 'Open Sans', sans-serif !important;
+  letter-spacing: 0.015em;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6, 
+.MuiTypography-h1, .MuiTypography-h2, .MuiTypography-h3, 
+.MuiTypography-h4, .MuiTypography-h5, .MuiTypography-h6 {
+  font-family: 'Source Sans 3', 'Open Sans', sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
+/* Параллакс та фон */
+body {
+  background-color: #f5f5f5;
+}
+
+.app-wrapper {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+.parallax-background {
+  position: fixed;
+  top: -40%;
+  width: 100%;
+  height: 150%;
+  background-image: url('./images/volunteers.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  z-index: -1;
+  opacity: 0.15;
+  transform-origin: center center;
+  transition: none;
+  will-change: transform;
+}
+
+.parallax-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: -1;
+}
+
+.parallax-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: auto;
+}
+
+.content-wrapper {
+  position: relative;
+  z-index: 2;
+  padding-top: 64px; /* Відступ для фіксованого navbar */
+  padding-bottom: 60px; /* Відступ знизу для скролла */
+}
+
+/* Адаптація для великих екранів */
+@media (min-width: 1200px) {
+  .parallax-background {
+    left: -15%;
+    width: 130%;
+  }
+}

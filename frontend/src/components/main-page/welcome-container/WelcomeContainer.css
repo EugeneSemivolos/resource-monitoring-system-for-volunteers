@@ -1,0 +1,135 @@
+.welcome-container {
+  padding: 32px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(25, 118, 210, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+  z-index: 2;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.welcome-container:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 120px;
+  background-color: rgba(25, 118, 210, 0.05);
+  border-radius: 0 3px 0 0;
+  z-index: -1;
+}
+
+.welcome-container:before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 120px;
+  height: 120px;
+  background-color: rgba(25, 118, 210, 0.05);
+  border-radius: 0 0 0 3px;
+  z-index: -1;
+}
+
+.welcome-icon {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  font-size: 80px;
+  opacity: 0.1;
+  color: #1976d2;
+  transform: rotate(15deg);
+}
+
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.welcome-title {
+  font-size: 2.4rem;
+  text-align: center;
+  font-weight: 500;
+  color: #1976d2;
+  line-height: 1.2;
+  font-family: 'Source Sans 3', 'Open Sans', sans-serif;
+}
+
+.welcome-middle {
+  font-size: 1.5rem;
+  text-align: center;
+  font-weight: 400;
+  color: #1976d2;
+  line-height: 1.2;
+  margin: 4px 0;
+  font-family: 'Source Sans 3', 'Open Sans', sans-serif;
+}
+
+.welcome-system-title {
+  font-size: 4rem;
+  text-align: center;
+  font-weight: 700;
+  color: #1976d2;
+  line-height: 1.1;
+  margin-bottom: 8px;
+  font-family: 'Source Sans 3', 'Open Sans', sans-serif;
+}
+
+.welcome-subtitle {
+  font-size: 1.5rem;
+  text-align: center;
+  font-style: italic;
+  opacity: 0.85;
+  margin: 8px 0 16px;
+  font-family: 'Nunito', 'Open Sans', sans-serif;
+}
+
+.welcome-button-container {
+  margin-top: 32px;
+  text-align: center;
+}
+
+/* Медіа-запити для адаптивного дизайну */
+@media (max-width: 960px) {
+  .welcome-title {
+    font-size: 2.1rem;
+  }
+  
+  .welcome-middle {
+    font-size: 1.3rem;
+  }
+  
+  .welcome-system-title {
+    font-size: 3.2rem;
+  }
+  
+  .welcome-subtitle {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .welcome-title {
+    font-size: 1.8rem;
+  }
+  
+  .welcome-middle {
+    font-size: 1.1rem;
+  }
+  
+  .welcome-system-title {
+    font-size: 2.5rem;
+  }
+  
+  .welcome-subtitle {
+    font-size: 1.1rem;
+  }
+} 

@@ -1,0 +1,112 @@
+/* Карусель */
+.carousel-container {
+  position: relative;
+  margin: 0 auto 30px;
+  padding: 40px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  border-radius: 16px;
+  background-color: rgba(250, 250, 250, 0.95);
+  overflow: hidden;
+  border: 1px solid rgba(25, 118, 210, 0.25);
+}
+
+.carousel-root {
+  outline: none;
+}
+
+.carousel .slide {
+  background: transparent;
+  padding: 10px;
+}
+
+.card-carousel {
+  display: flex !important;
+  justify-content: center;
+}
+
+/* Навігація каруселі */
+.carousel .control-dots {
+  bottom: 10px;
+}
+
+.carousel .control-dots .dot {
+  background: #2e7d32 !important;
+  box-shadow: none;
+  opacity: 0.4;
+}
+
+.carousel .control-dots .dot.selected {
+  opacity: 1;
+}
+
+.carousel .control-arrow {
+  background-color: rgba(25, 118, 210, 0.7) !important;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: calc(50% - 20px) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: absolute !important;
+  z-index: 10;
+  opacity: 0.3 !important;
+  transition: opacity 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.carousel:hover .control-arrow {
+  opacity: 0.6 !important;
+}
+
+.carousel .control-arrow:hover {
+  background-color: rgba(25, 118, 210, 0.9) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  opacity: 1 !important;
+}
+
+.carousel .control-prev.control-arrow {
+  left: 10px;
+}
+
+.carousel .control-next.control-arrow {
+  right: 10px;
+}
+
+.carousel .control-arrow:active {
+  opacity: 0.4 !important;
+  outline: none;
+  background-color: rgba(25, 118, 210, 0.7) !important;
+}
+
+.carousel .control-arrow.control-disabled {
+  opacity: 0.3 !important;
+}
+
+.carousel .control-arrow.control-disabled:hover {
+  opacity: 0.3 !important;
+  background-color: rgba(25, 118, 210, 0.7) !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  cursor: default;
+}
+
+.carousel .control-arrow:before {
+  margin: 0 !important;
+  border-width: 8px !important;
+  border-color: transparent !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel .control-prev.control-arrow:before {
+  border-right-color: white !important;
+  margin-right: 3px !important;
+}
+
+.carousel .control-next.control-arrow:before {
+  border-left-color: white !important;
+  margin-left: 3px !important;
+}

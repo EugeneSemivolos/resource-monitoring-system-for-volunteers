@@ -1,0 +1,117 @@
+.carousel-item-card {
+  margin: 30px;
+  border-radius: 16px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  height: 480px;
+  max-width: 80%;
+  margin: 0 auto;
+  background-color: #ffffff;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 1px);
+  background-size: 16px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 25px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.carousel-item-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+}
+
+.card-green::before {
+  background: linear-gradient(90deg, #1b5e20, #4caf50);
+}
+
+.card-blue::before {
+  background: linear-gradient(90deg, #0d47a1, #2196f3);
+}
+
+.card-purple::before {
+  background: linear-gradient(90deg, #7b1fa2, #e040fb);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 15px;
+  text-align: left;
+}
+
+.icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.04);
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
+}
+
+.card-icon {
+  font-size: 44px !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.card-green-icon {
+  color: #2e7d32 !important;
+}
+
+.card-blue-icon {
+  color: #1976d2 !important;
+}
+
+.card-purple-icon {
+  color: #9c27b0 !important;
+}
+
+.card-content {
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-weight: 500 !important;
+  text-align: left;
+  padding: 12px 0 12px 18px;
+  border-left: 4px solid rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 0 8px 8px 0;
+}
+
+.card-green .card-content {
+  border-left-color: rgba(46, 125, 50, 0.3);
+}
+
+.card-blue .card-content {
+  border-left-color: rgba(25, 118, 210, 0.3);
+}
+
+.card-purple .card-content {
+  border-left-color: rgba(156, 39, 176, 0.3);
+}
+
+.card-list {
+  padding-left: 25px;
+  margin-top: 15px;
+  list-style-type: disc;
+  text-align: left;
+  position: relative;
+  flex-grow: 1;
+}
+
+.list-item {
+  margin-bottom: 1.2rem !important;
+  padding-left: 5px !important;
+  line-height: 1.5 !important;
+  text-align: left;
+  display: list-item;
+  color: #333;
+}
+
+.carousel-item-card .MuiCardContent-root {
+  overflow-y: auto;
+} 

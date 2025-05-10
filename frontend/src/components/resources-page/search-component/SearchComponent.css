@@ -1,0 +1,114 @@
+.search-container {
+  margin-bottom: 1.5rem;
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  border-top: 0;
+  border: 1px solid rgba(25, 118, 210, 0.2);
+}
+
+.search-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.search-field-container {
+  padding: 12px;
+  box-sizing: border-box;
+  width: 30%;
+  min-height: 80px;
+  position: relative;
+}
+
+.category-field-container,
+.location-field-container {
+  padding: 12px;
+  box-sizing: border-box;
+  width: 28.75%;
+  min-height: 80px;
+  position: relative;
+}
+
+.button-container {
+  padding: 12px;
+  box-sizing: border-box;
+  width: 12.5%;
+  min-height: 80px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.search-field {
+  width: 100%;
+}
+
+.search-button {
+  width: 100%;
+  height: 56px;
+  text-transform: none !important;
+  font-size: 16px !important;
+}
+
+.category-field,
+.location-field {
+  width: 100%;
+}
+
+.search-field .MuiOutlinedInput-root fieldset {
+  border-color: rgba(0, 0, 0, 0.23);
+}
+
+.search-field .MuiOutlinedInput-root:hover fieldset {
+  border-color: #1976d2;
+}
+
+.search-field .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: #1976d2;
+}
+
+.category-field .MuiOutlinedInput-root fieldset {
+  border-color: rgba(0, 0, 0, 0.23);
+}
+
+.category-field .MuiOutlinedInput-root:hover fieldset {
+  border-color: #1976d2;
+}
+
+.category-field .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: #1976d2;
+}
+
+.location-field .MuiOutlinedInput-root fieldset {
+  border-color: rgba(0, 0, 0, 0.23);
+}
+
+.location-field .MuiOutlinedInput-root:hover fieldset {
+  border-color: #1976d2;
+}
+
+.location-field .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: #1976d2;
+}
+
+/* Адаптивные стили */
+@media (max-width: 960px) {
+  .search-field-container,
+  .category-field-container,
+  .location-field-container,
+  .button-container {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .search-container {
+    padding: 1rem;
+  }
+  
+  .search-button {
+    height: 48px;
+  }
+}
