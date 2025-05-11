@@ -94,7 +94,7 @@
   border-color: #1976d2;
 }
 
-/* Адаптивные стили */
+/* Адаптивні стилі */
 @media (max-width: 960px) {
   .search-field-container,
   .category-field-container,

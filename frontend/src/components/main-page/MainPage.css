@@ -1,3 +1,57 @@
+/* Блоки вмісту */
+.content-box {
+  margin-top: 2rem;
+  margin-bottom: 2.5rem;
+  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 0.75rem;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(25, 118, 210, 0.2);
+}
+
+/* Типографіка */
+.section-title {
+  font-weight: bold;
+  color: #1976d2;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-text {
+  font-size: 1.05rem;
+  text-align: justify;
+  font-family: 'Nunito, "Open Sans", sans-serif';
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.center-text {
+  text-align: center;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.action-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+/* Стилі іконок карток */
+.resource-icon {
+  color: #2e7d32;
+}
+
+.volunteer-icon {
+  color: #1976d2;
+}
+
+.curator-icon {
+  color: #9c27b0;
+}
+
 /* Карусель */
 .carousel-container {
   position: relative;

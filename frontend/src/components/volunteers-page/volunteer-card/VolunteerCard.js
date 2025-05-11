@@ -13,96 +13,139 @@ import BusinessIcon from '@mui/icons-material/Business';
 import BuildIcon from '@mui/icons-material/Build';
 import './VolunteerCard.css';
 
+// Константи
+const API_BASE_URL = 'http://localhost:8000';
+const FALLBACK_AVATAR = 'https://via.placeholder.com/150';
+
 const VolunteerCard = ({ volunteer }) => {
-  // Формируем полное имя
-  const fullName = `${volunteer.last_name || ''} ${volunteer.first_name || ''}${volunteer.middle_name ? ' ' + volunteer.middle_name : ''}`;
+  // Допоміжні функції
+  const getFullName = () => {
+    const lastName = volunteer.last_name || '';
+    const firstName = volunteer.first_name || '';
+    const middleName = volunteer.middle_name ? ` ${volunteer.middle_name}` : '';
+    return `${lastName} ${firstName}${middleName}`;
+  };
 
-  // Формируем URL для фото или используем заглушку
-  const photoUrl = volunteer.photo && volunteer.photo.length > 0
-    ? `http://localhost:8000${volunteer.photo}`
-    : null;
+  const getPhotoUrl = () => {
+    if (!volunteer.photo || typeof volunteer.photo !== 'string' || volunteer.photo.length === 0) {
+      return null;
+    }
+    return `${API_BASE_URL}${volunteer.photo}`;
+  };
 
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = FALLBACK_AVATAR;
+  };
+
+  const parseSkills = (skills) => {
+    if (!skills) return [];
+    if (typeof skills !== 'string') return [skills];
+    return skills.split(',').map(skill => skill.trim());
+  };
+
+  // Обробка даних
+  const fullName = getFullName();
+  const photoUrl = getPhotoUrl();
+  const skills = parseSkills(volunteer.skills);
+
+  // Функції відображення
+  const renderHeader = () => (
+    <div className="volunteer-card-header">
+      {renderAvatar()}
+      <div className="volunteer-name-container">
+        <Typography variant="h6" component="h2" className="volunteer-name">
+          {fullName}
+        </Typography>
+      </div>
+    </div>
+  );
+
+  const renderAvatar = () => {
+    if (photoUrl) {
+      return (
+        <Avatar 
+          src={photoUrl} 
+          alt={fullName} 
+          className="volunteer-avatar"
+          onError={handleImageError}
+        />
+      );
+    } 
+    return (
+      <Avatar className="volunteer-avatar">
+        <PersonIcon />
+      </Avatar>
+    );
+  };
+
+  const renderOrganization = () => {
+    if (!volunteer.organization) return null;
+    
+    return (
+      <Box className="volunteer-info-section volunteer-info-row">
+        <Box className="volunteer-info-label-inline">
+          <BusinessIcon className="volunteer-info-icon" />
+          <Typography variant="subtitle2" className="volunteer-info-title">
+            Організація:
+          </Typography>
+        </Box>
+        <Typography variant="body2" className="volunteer-organization-value">
+          {volunteer.organization}
+        </Typography>
+      </Box>
+    );
+  };
+
+  const renderSkills = () => {
+    if (!volunteer.skills) return null;
+    
+    return (
+      <Box className="volunteer-info-section">
+        <Box className="volunteer-info-label">
+          <BuildIcon className="volunteer-info-icon" />
+          <Typography variant="subtitle2" className="volunteer-info-title">
+            Навички:
+          </Typography>
+        </Box>
+        <Box className="volunteer-skills">
+          {skills.map((skill, index) => (
+            <Chip 
+              key={index} 
+              label={skill} 
+              size="small" 
+              className="volunteer-skill-chip"
+            />
+          ))}
+        </Box>
+      </Box>
+    );
+  };
+
+  const renderDescription = () => {
+    if (!volunteer.description) return null;
+    
+    return (
+      <Box className="volunteer-info-section volunteer-description">
+        <Typography variant="subtitle2" className="volunteer-info-title">
+          Опис:
+        </Typography>
+        <Typography variant="body2" className="volunteer-info-description">
+          {volunteer.description}
+        </Typography>
+      </Box>
+    );
+  };
+
+  // Основний рендер
   return (
     <Card className="volunteer-card">
       <CardContent>
-        <div className="volunteer-card-header">
-          {photoUrl ? (
-            <Avatar 
-              src={photoUrl} 
-              alt={fullName} 
-              className="volunteer-avatar"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = 'https://via.placeholder.com/150';
-              }}
-            />
-          ) : (
-            <Avatar className="volunteer-avatar">
-              <PersonIcon />
-            </Avatar>
-          )}
-          <div className="volunteer-name-container">
-            <Typography variant="h6" component="h2" className="volunteer-name">
-              {fullName}
-            </Typography>
-          </div>
-        </div>
-        
+        {renderHeader()}
         <Divider className="volunteer-divider" />
-        
-        {/* Организация */}
-        {volunteer.organization && (
-          <Box className="volunteer-info-section volunteer-info-row">
-            <Box className="volunteer-info-label-inline">
-              <BusinessIcon className="volunteer-info-icon" />
-              <Typography variant="subtitle2" className="volunteer-info-title">
-                Організація:
-              </Typography>
-            </Box>
-            <Typography variant="body2" className="volunteer-organization-value">
-              {volunteer.organization}
-            </Typography>
-          </Box>
-        )}
-        
-        {/* Навыки */}
-        {volunteer.skills && (
-          <Box className="volunteer-info-section">
-            <Box className="volunteer-info-label">
-              <BuildIcon className="volunteer-info-icon" />
-              <Typography variant="subtitle2" className="volunteer-info-title">
-                Навички:
-              </Typography>
-            </Box>
-            <Box className="volunteer-skills">
-              {typeof volunteer.skills === 'string' ? 
-                volunteer.skills.split(',').map((skill, index) => (
-                  <Chip 
-                    key={index} 
-                    label={skill.trim()} 
-                    size="small" 
-                    className="volunteer-skill-chip"
-                  />
-                )) : 
-                <Typography variant="body2">
-                  {volunteer.skills}
-                </Typography>
-              }
-            </Box>
-          </Box>
-        )}
-        
-        {/* Описание */}
-        {volunteer.description && (
-          <Box className="volunteer-info-section volunteer-description">
-            <Typography variant="subtitle2" className="volunteer-info-title">
-              Опис:
-            </Typography>
-            <Typography variant="body2" className="volunteer-info-description">
-              {volunteer.description}
-            </Typography>
-          </Box>
-        )}
+        {renderOrganization()}
+        {renderSkills()}
+        {renderDescription()}
       </CardContent>
     </Card>
   );

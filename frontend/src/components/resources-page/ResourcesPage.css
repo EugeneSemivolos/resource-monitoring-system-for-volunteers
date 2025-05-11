@@ -3,7 +3,6 @@
   padding-bottom: 4rem;
 }
 
-/* Header styles */
 .header-container {
   background-color: rgba(255, 255, 255, 0.95);
   padding-top: 1.25rem;
@@ -46,7 +45,6 @@
   font-size: 2rem;
 }
 
-/* Resources grid */
 .resources-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -58,7 +56,7 @@
   min-height: 300px;
 }
 
-/* Состояния загрузки, ошибки и пустых данных */
+/* Стан загрузки, помилки і пусті дані */
 .resources-loading,
 .resources-error,
 .resources-empty {

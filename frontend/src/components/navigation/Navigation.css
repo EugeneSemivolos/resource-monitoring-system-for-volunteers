@@ -1,3 +1,37 @@
 .user-icon {
   margin-left: 1rem;
+}
+
+.app-bar {
+  z-index: 1100;
+  background-color: rgba(25, 118, 210, 0.95);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.site-title {
+  flex-grow: 1;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.site-title:hover {
+  opacity: 0.8;
+}
+
+.navigation-tabs .MuiTab-root {
+  color: white;
+  font-size: 1rem;
+  text-transform: none;
+  min-width: 100px;
+}
+
+.navigation-tabs .Mui-selected {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: white !important;
+}
+
+.navigation-tabs .MuiTabs-indicator {
+  background-color: white;
+  height: 3px;
 } 

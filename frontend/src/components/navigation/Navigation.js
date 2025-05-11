@@ -9,23 +9,12 @@ const Navigation = ({ navValue, setNavValue }) => {
   };
 
   return (
-    <AppBar position="fixed" sx={{ 
-      zIndex: 1100,
-      backgroundColor: 'rgba(25, 118, 210, 0.95)',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-    }}>
+    <AppBar position="fixed" className="app-bar">
       <Toolbar>
         <Typography 
           variant="h6" 
           onClick={handleLogoClick}
-          sx={{ 
-            flexGrow: 1,
-            cursor: 'pointer',
-            '&:hover': {
-              opacity: 0.8
-            },
-            transition: 'opacity 0.2s'
-          }}
+          className="site-title"
         >
           Система моніторингу ресурсів
         </Typography>
@@ -35,23 +24,7 @@ const Navigation = ({ navValue, setNavValue }) => {
             setNavValue(newValue);
           }} 
           aria-label="navigation tabs"
-          sx={{
-            '& .MuiTab-root': {
-              color: 'white',
-              fontSize: '1rem',
-              textTransform: 'none',
-              minWidth: 100,
-            },
-            '& .Mui-selected': {
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-              color: 'white !important',
-            },
-            '& .MuiTabs-indicator': {
-              backgroundColor: 'white',
-              height: '3px',
-            },
-          }}
+          className="navigation-tabs"
         >
           <Tab label="Головна" />
           <Tab label="Ресурси" />

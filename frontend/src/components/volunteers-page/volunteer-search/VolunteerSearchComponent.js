@@ -12,8 +12,8 @@ const VolunteerSearchComponent = ({
   setSearchTerm, 
 }) => {
   const handleSearch = () => {
-    // Здесь можно добавить дополнительную логику поиска при нажатии на кнопку
-    console.log("Поиск волонтеров по:", searchTerm);
+    // Тут можна додати додаткову логіку пошуку при натисканні на кнопку
+    console.log("Пошук волонтерів за:", searchTerm);
   };
 
   return (

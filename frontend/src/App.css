@@ -1,42 +1,17 @@
-.app-container {
-  text-align: center;
-  margin-bottom: 2rem;
-  padding: 20px;
-  border-radius: 12px;
-  background-color: rgba(250, 250, 250, 0.85);
-}
-
-.main-title {
-  margin-bottom: 1rem;
-}
-
-.subtitle {
-  margin-bottom: 2rem;
-}
-
-.mission-card {
-  margin-top: 1rem;
-}
-
-.user-icon {
-  margin-left: 1rem;
-}
-
-.cards-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 24px;
-  padding: 0 12px;
-}
-
 /* Базові стилі */
-body, html {
+html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
   overflow-x: hidden;
   font-family: 'Source Sans 3', 'Open Sans', sans-serif;
+  background-color: #f5f5f5;
+}
+
+/* Поведінка смуги прокрутки */
+html {
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 /* Типографіка */
@@ -53,17 +28,23 @@ h1, h2, h3, h4, h5, h6,
   letter-spacing: -0.01em;
 }
 
-/* Параллакс та фон */
-body {
-  background-color: #f5f5f5;
-}
-
+/* Компоненти макету */
 .app-wrapper {
   position: relative;
   z-index: 1;
   min-height: 100%;
 }
 
+.content-wrapper {
+  position: relative;
+  z-index: 2;
+  padding-top: 64px; /* Місце для фіксованої навігаційної панелі */
+  padding-bottom: 20px;
+  min-height: calc(100vh - 84px);
+  overflow: visible;
+}
+
+/* Фон та паралакс */
 .parallax-background {
   position: fixed;
   top: -40%;
@@ -75,7 +56,6 @@ body {
   background-attachment: fixed;
   z-index: -1;
   opacity: 0.15;
-  transform-origin: center center;
   transition: none;
   will-change: transform;
 }
@@ -97,30 +77,27 @@ body {
   height: auto;
 }
 
-.content-wrapper {
-  position: relative;
-  z-index: 2;
-  padding-top: 64px; /* Відступ для фіксованого navbar */
-  padding-bottom: 20px; /* Зменшений відступ знизу */
-  min-height: calc(100vh - 84px); /* Висота вікна мінус відступи */
-  overflow: visible;
+/* Компоненти головної сторінки */
+.app-container {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: rgba(250, 250, 250, 0.85);
 }
 
-/* Адаптація для великих екранів */
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  padding: 0 12px;
+}
+
+/* Медіа-запити */
 @media (min-width: 1200px) {
   .parallax-background {
     left: -15%;
     width: 130%;
   }
-}
-
-/* Scrollbar behavior */
-html {
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-
-body {
-  overflow-y: auto;
-  min-height: 100%;
 }
