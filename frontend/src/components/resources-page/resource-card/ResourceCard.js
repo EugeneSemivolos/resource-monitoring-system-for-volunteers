@@ -14,7 +14,9 @@ import './ResourceCard.css';
 
 const ResourceCard = ({ resource }) => {
   // Получаем URL фотографии ресурса или используем заглушку
-  const imageUrl = resource.photo || notFoundImage;
+  const imageUrl = resource.photo && resource.photo.length > 0
+    ? `http://localhost:8000${resource.photo}`
+    : notFoundImage;
 
   return (
     <Card className="resource-card">
@@ -28,6 +30,10 @@ const ResourceCard = ({ resource }) => {
               src={imageUrl} 
               alt={resource.name} 
               className="resource-image"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = notFoundImage;
+              }}
             />
           </div>
         </div>

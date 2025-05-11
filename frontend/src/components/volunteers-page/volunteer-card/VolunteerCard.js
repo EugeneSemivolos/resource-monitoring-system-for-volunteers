@@ -15,10 +15,12 @@ import './VolunteerCard.css';
 
 const VolunteerCard = ({ volunteer }) => {
   // Формируем полное имя
-  const fullName = `${volunteer.last_name} ${volunteer.first_name}${volunteer.middle_name ? ' ' + volunteer.middle_name : ''}`;
+  const fullName = `${volunteer.last_name || ''} ${volunteer.first_name || ''}${volunteer.middle_name ? ' ' + volunteer.middle_name : ''}`;
 
   // Формируем URL для фото или используем заглушку
-  const photoUrl = volunteer.photo || null;
+  const photoUrl = volunteer.photo && volunteer.photo.length > 0
+    ? `http://localhost:8000${volunteer.photo}`
+    : null;
 
   return (
     <Card className="volunteer-card">
@@ -29,6 +31,10 @@ const VolunteerCard = ({ volunteer }) => {
               src={photoUrl} 
               alt={fullName} 
               className="volunteer-avatar"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://via.placeholder.com/150';
+              }}
             />
           ) : (
             <Avatar className="volunteer-avatar">
@@ -69,14 +75,19 @@ const VolunteerCard = ({ volunteer }) => {
               </Typography>
             </Box>
             <Box className="volunteer-skills">
-              {volunteer.skills.split(',').map((skill, index) => (
-                <Chip 
-                  key={index} 
-                  label={skill.trim()} 
-                  size="small" 
-                  className="volunteer-skill-chip"
-                />
-              ))}
+              {typeof volunteer.skills === 'string' ? 
+                volunteer.skills.split(',').map((skill, index) => (
+                  <Chip 
+                    key={index} 
+                    label={skill.trim()} 
+                    size="small" 
+                    className="volunteer-skill-chip"
+                  />
+                )) : 
+                <Typography variant="body2">
+                  {volunteer.skills}
+                </Typography>
+              }
             </Box>
           </Box>
         )}

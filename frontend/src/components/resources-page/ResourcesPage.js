@@ -12,12 +12,12 @@ import './ResourcesPage.css';
 // Константы для категорий, соответствующие backend
 const CATEGORY_OPTIONS = {
   ALL: 'all',
-  MEDICAL: 'Медичні засоби',
-  EQUIPMENT: 'Спорядження',
-  FOOD: 'Продукти',
-  TECH: 'Обладнання',
-  CLOTHES: 'Одяг',
-  OTHER: 'Інше'
+  MEDICAL: 'медичні засоби',
+  EQUIPMENT: 'спорядження',
+  FOOD: 'продукти',
+  TECH: 'обладнання',
+  CLOTHES: 'одяг',
+  OTHER: 'інше'
 };
 
 const ResourcesPage = () => {
@@ -39,8 +39,18 @@ const ResourcesPage = () => {
         return response.json();
       })
       .then(data => {
+        
+        // Проверяем, является ли ответ объектом с пагинацией или массивом
+        const resultsArray = data.results ? data.results : data;
+        
+        // Проверяем, является ли resultsArray массивом
+        if (!Array.isArray(resultsArray)) {
+          console.error('API response is not an array or paginated object:', data);
+          throw new Error('Unexpected API response format');
+        }
+        
         // Преобразуем данные из API в формат для отображения
-        const apiResources = data.map(item => ({
+        const apiResources = resultsArray.map(item => ({
           id: item.id,
           name: item.name,
           category: item.category.charAt(0).toUpperCase() + item.category.slice(1),  // Приводим к формату с большой буквы
@@ -48,7 +58,8 @@ const ResourcesPage = () => {
           quantity: parseFloat(item.quantity),
           unit: item.unit,
           description: item.comment || 'Описание отсутствует',
-          photo: item.photo || null
+          photo: item.photo || null,
+          status: item.status
         }));
         
         // Устанавливаем данные из API
@@ -73,15 +84,13 @@ const ResourcesPage = () => {
     CATEGORY_OPTIONS.OTHER
   ];
   
-  const locations = ['all', 'Київ', 'Львів', 'Харків', 'Одеса', 'Дніпро'];
-
   // Получаем уникальные локации из данных ресурсов
   const uniqueLocations = ['all', ...new Set(resources.map(resource => resource.location).filter(Boolean))];
 
   // Фильтрация ресурсов
   const filteredResources = resources.filter(resource => {
-    // Фильтрация по категории
-    const categoryMatch = categoryFilter === 'all' || resource.category === categoryFilter;
+    // Фильтрация по категории (case insensitive)
+    const categoryMatch = categoryFilter === 'all' || resource.category.toLowerCase() === categoryFilter.toLowerCase();
     
     // Фильтрация по локации
     const locationMatch = locationFilter === 'all' || resource.location === locationFilter;
@@ -89,7 +98,7 @@ const ResourcesPage = () => {
     // Фильтрация по поисковому запросу
     const searchMatch = searchTerm === '' || 
       resource.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      resource.description.toLowerCase().includes(searchTerm.toLowerCase());
+      (resource.description && resource.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
     return categoryMatch && locationMatch && searchMatch;
   });

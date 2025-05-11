@@ -9,39 +9,6 @@ import VolunteerSearchComponent from './volunteer-search/VolunteerSearchComponen
 import VolunteerCard from './volunteer-card/VolunteerCard';
 import './VolunteersPage.css';
 
-const mockVolunteers = [
-  {
-    id: 1,
-    first_name: "Іван",
-    last_name: "Петренко",
-    middle_name: "Олександрович",
-    organization: "Червоний хрест",
-    skills: "Медична допомога, водіння",
-    description: "Волонтер з досвідом у сфері медичної допомоги",
-    photo: null
-  },
-  {
-    id: 2,
-    first_name: "Марія",
-    last_name: "Ковальчук",
-    middle_name: "Іванівна",
-    organization: "Армія SOS",
-    skills: "Логістика, координація",
-    description: "Координатор волонтерських груп",
-    photo: null
-  },
-  {
-    id: 3,
-    first_name: "Олег",
-    last_name: "Сидоренко",
-    middle_name: "Петрович",
-    organization: "Волонтери без кордонів",
-    skills: "IT, комунікації",
-    description: "Розробка веб-сайтів для волонтерських організацій",
-    photo: null
-  },
-];
-
 const VolunteersPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [volunteers, setVolunteers] = useState([]);
@@ -60,19 +27,21 @@ const VolunteersPage = () => {
         }
         
         const data = await response.json();
+
+        // Обработка пагинированных данных
+        const resultsArray = data.results ? data.results : data;
         
-        // Если данные получены успешно, используем их, иначе используем тестовые данные
-        if (data && data.length > 0) {
-          setVolunteers(data);
-        } else {
-          setVolunteers(mockVolunteers);
+        // Проверка, является ли результат массивом
+        if (!Array.isArray(resultsArray)) {
+          console.error('API response is not an array or paginated object:', data);
+          throw new Error('Unexpected API response format');
         }
         
+        setVolunteers(resultsArray);
         setLoading(false);
       } catch (error) {
         console.error('Помилка при завантаженні даних:', error);
         setError(error.message);
-        setVolunteers(mockVolunteers); // Используем тестовые данные в случае ошибки
         setLoading(false);
       }
     };
@@ -82,14 +51,16 @@ const VolunteersPage = () => {
 
   // Фильтрация волонтеров по поисковому запросу
   const filteredVolunteers = volunteers.filter(volunteer => {
-    const fullName = `${volunteer.last_name} ${volunteer.first_name} ${volunteer.middle_name || ''}`.toLowerCase();
+    const fullName = `${volunteer.last_name || ''} ${volunteer.first_name || ''} ${volunteer.middle_name || ''}`.toLowerCase();
     const skills = (volunteer.skills || '').toLowerCase();
     const org = (volunteer.organization || '').toLowerCase();
+    const description = (volunteer.description || '').toLowerCase();
     const searchTermLower = searchTerm.toLowerCase();
     
     return fullName.includes(searchTermLower) || 
            skills.includes(searchTermLower) || 
-           org.includes(searchTermLower);
+           org.includes(searchTermLower) ||
+           description.includes(searchTermLower);
   });
 
   return (
@@ -118,7 +89,6 @@ const VolunteersPage = () => {
       ) : error ? (
         <div className="volunteers-error">
           <Typography color="error">{error}</Typography>
-          <Typography variant="body2">Відображаються тестові дані</Typography>
         </div>
       ) : (
         // Список волонтерів
