@@ -58,6 +58,29 @@
   min-height: 300px;
 }
 
+/* Состояния загрузки, ошибки и пустых данных */
+.resources-loading,
+.resources-error,
+.resources-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  margin-top: 2rem;
+  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.resources-error {
+  background-color: rgba(255, 235, 235, 0.8);
+}
+
+.resources-empty {
+  background-color: rgba(245, 245, 245, 0.8);
+}
+
 /* Адаптивні стилі */
 @media (max-width: 960px) {
   .resources-grid {

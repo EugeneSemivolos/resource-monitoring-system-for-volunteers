@@ -4,15 +4,18 @@ import {
   CardContent,
   Typography,
   Box,
-  Chip
+  Chip,
+  Divider
 } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CategoryIcon from '@mui/icons-material/Category';
 import notFoundImage from '../../../images/not_found.png';
 import './ResourceCard.css';
-import './ResourceCardAnimation.css';
 
 const ResourceCard = ({ resource }) => {
+  // Получаем URL фотографии ресурса или используем заглушку
+  const imageUrl = resource.photo || notFoundImage;
+
   return (
     <Card className="resource-card">
       <CardContent>
@@ -22,12 +25,14 @@ const ResourceCard = ({ resource }) => {
           </Typography>
           <div className="resource-image-container">
             <img 
-              src={notFoundImage} 
+              src={imageUrl} 
               alt={resource.name} 
               className="resource-image"
             />
           </div>
         </div>
+        
+        <Divider className="resource-divider" />
         
         <Box className="resource-chips-container">
           <Chip 

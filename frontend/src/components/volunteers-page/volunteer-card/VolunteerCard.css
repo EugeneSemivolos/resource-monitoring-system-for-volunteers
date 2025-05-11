@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s !important;
   background-color: rgba(255, 255, 255, 0.9) !important;
 }
 
@@ -22,11 +22,107 @@
   margin-right: 1rem;
   width: 48px !important;
   height: 48px !important;
+  flex-shrink: 0;
+}
+
+.volunteer-name-container {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .volunteer-name {
   font-weight: 600 !important;
   color: #3f51b5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.volunteer-middle-name {
+  color: #666;
+  font-style: italic;
+}
+
+.volunteer-divider {
+  margin: 0.5rem 0 1rem 0 !important;
+}
+
+.volunteer-info-section {
+  margin-bottom: 1rem;
+}
+
+.volunteer-info-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.volunteer-info-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.volunteer-info-label-inline {
+  display: flex;
+  align-items: center;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.volunteer-info-icon {
+  font-size: 1rem !important;
+  margin-right: 0.5rem;
+  color: #3f51b5;
+}
+
+.volunteer-info-title {
+  font-weight: 600 !important;
+  color: #333;
+}
+
+.volunteer-info-value {
+  margin-left: 1.5rem;
+}
+
+.volunteer-organization-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.volunteer-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: 1.5rem;
+}
+
+.volunteer-skill-chip {
+  background-color: #e8eaf6 !important;
+  color: #3f51b5 !important;
+}
+
+.volunteer-info-description {
+  margin-left: 0;
+  margin-top: 0.5rem;
+  background-color: #f5f5f5;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-style: italic;
+}
+
+.volunteers-loading,
+.volunteers-error,
+.volunteers-no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  min-height: 200px;
 }
 
 .volunteer-placeholder {
@@ -53,5 +149,17 @@
   
   .volunteer-avatar {
     margin-bottom: 0.5rem;
+  }
+  
+  .volunteer-skills {
+    margin-left: 0;
+  }
+  
+  .volunteer-info-value {
+    margin-left: 0;
+  }
+
+  .volunteer-name-container {
+    width: 100%;
   }
 } 

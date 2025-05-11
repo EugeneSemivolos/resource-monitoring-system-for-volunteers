@@ -2,50 +2,35 @@ import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import CategoryIcon from '@mui/icons-material/Category';
 import SearchComponent from './search-component/SearchComponent';
 import ResourceCard from './resource-card/ResourceCard';
 import './ResourcesPage.css';
 
-const mockResources = [
-  {
-    id: 1,
-    name: "Медичні маски",
-    category: "Медичні засоби",
-    location: "Київ",
-    quantity: 1000,
-    unit: "шт.",
-    description: "Одноразові медичні маски, тришарові"
-  },
-  {
-    id: 2,
-    name: "Спальні мішки",
-    category: "Спорядження",
-    location: "Львів",
-    quantity: 50,
-    unit: "шт.",
-    description: "Спальні мішки для використання в холодну пору року"
-  },
-  {
-    id: 3,
-    name: "Продуктові набори",
-    category: "Продукти",
-    location: "Харків",
-    quantity: 200,
-    unit: "наборів",
-    description: "Набори тривалого зберігання: крупи, консерви, чай"
-  },
-];
+// Константы для категорий, соответствующие backend
+const CATEGORY_OPTIONS = {
+  ALL: 'all',
+  MEDICAL: 'Медичні засоби',
+  EQUIPMENT: 'Спорядження',
+  FOOD: 'Продукти',
+  TECH: 'Обладнання',
+  CLOTHES: 'Одяг',
+  OTHER: 'Інше'
+};
 
 const ResourcesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState(CATEGORY_OPTIONS.ALL);
   const [locationFilter, setLocationFilter] = useState('all');
-  const [resources, setResources] = useState([...mockResources]);
+  const [resources, setResources] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // Получить данные из API
+    setLoading(true);
     fetch('http://localhost:8000/api/resources/')
       .then(response => {
         if (!response.ok) {
@@ -58,23 +43,56 @@ const ResourcesPage = () => {
         const apiResources = data.map(item => ({
           id: item.id,
           name: item.name,
-          category: item.category,
+          category: item.category.charAt(0).toUpperCase() + item.category.slice(1),  // Приводим к формату с большой буквы
           location: item.storage_location,
           quantity: parseFloat(item.quantity),
           unit: item.unit,
           description: item.comment || 'Описание отсутствует',
+          photo: item.photo || null
         }));
         
-        // Обновляем список ресурсов, добавляя данные из API к существующим макетам
-        setResources([...mockResources, ...apiResources]);
+        // Устанавливаем данные из API
+        setResources(apiResources);
+        setLoading(false);
       })
       .catch(error => {
         console.error('Error fetching resources:', error);
+        setError('Не вдалося завантажити дані про ресурси');
+        setLoading(false);
       });
   }, []);
 
-  const categories = ['all', 'Медичні засоби', 'Спорядження', 'Продукти', 'Обладнання', 'Одяг'];
+  // Массив категорий для фильтра
+  const categories = [
+    CATEGORY_OPTIONS.ALL, 
+    CATEGORY_OPTIONS.MEDICAL, 
+    CATEGORY_OPTIONS.EQUIPMENT, 
+    CATEGORY_OPTIONS.FOOD, 
+    CATEGORY_OPTIONS.TECH, 
+    CATEGORY_OPTIONS.CLOTHES, 
+    CATEGORY_OPTIONS.OTHER
+  ];
+  
   const locations = ['all', 'Київ', 'Львів', 'Харків', 'Одеса', 'Дніпро'];
+
+  // Получаем уникальные локации из данных ресурсов
+  const uniqueLocations = ['all', ...new Set(resources.map(resource => resource.location).filter(Boolean))];
+
+  // Фильтрация ресурсов
+  const filteredResources = resources.filter(resource => {
+    // Фильтрация по категории
+    const categoryMatch = categoryFilter === 'all' || resource.category === categoryFilter;
+    
+    // Фильтрация по локации
+    const locationMatch = locationFilter === 'all' || resource.location === locationFilter;
+    
+    // Фильтрация по поисковому запросу
+    const searchMatch = searchTerm === '' || 
+      resource.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      resource.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return categoryMatch && locationMatch && searchMatch;
+  });
 
   return (
     <Container maxWidth="lg" className="resources-container">
@@ -97,17 +115,32 @@ const ResourcesPage = () => {
         locationFilter={locationFilter}
         setLocationFilter={setLocationFilter}
         categories={categories}
-        locations={locations}
+        locations={uniqueLocations}
       />
 
-      {/* Список ресурсів */}
-      <div className="resources-grid">
-        {resources.map((resource) => (
-          <div className="resources-grid-item" key={resource.id}>
-            <ResourceCard resource={resource} />
-          </div>
-        ))}
-      </div>
+      {/* Индикатор загрузки */}
+      {loading ? (
+        <div className="resources-loading">
+          <CircularProgress />
+        </div>
+      ) : error ? (
+        <div className="resources-error">
+          <Typography color="error">{error}</Typography>
+        </div>
+      ) : filteredResources.length === 0 ? (
+        <div className="resources-empty">
+          <Typography variant="h6">Ресурси не знайдено</Typography>
+        </div>
+      ) : (
+        /* Список ресурсів */
+        <div className="resources-grid">
+          {filteredResources.map((resource) => (
+            <div className="resources-grid-item" key={resource.id}>
+              <ResourceCard resource={resource} />
+            </div>
+          ))}
+        </div>
+      )}
     </Container>
   );
 };
