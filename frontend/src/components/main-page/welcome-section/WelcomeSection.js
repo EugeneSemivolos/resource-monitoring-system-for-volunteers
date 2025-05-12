@@ -1,23 +1,20 @@
 import React from 'react';
-import { Typography, Box, Paper } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 import ActionButton from '../action-button/ActionButton';
 import './WelcomeSection.css';
 
 const WelcomeSection = () => {
   return (
-    <Paper 
-      elevation={6}
-      className="welcome-container"
-    >
-      <VolunteerActivismIcon className="welcome-icon" />
+    <Box className="welcome-container">
+      <VolunteerActivismIcon className="welcome-icon"/>
       
       <Box className="welcome-content">
         <Typography className="welcome-title">
           Ласкаво просимо
         </Typography>
         
-        <Typography className="welcome-middle" sx={{ fontSize: '1.8rem' }}>
+        <Typography className="welcome-middle">
           до
         </Typography>
         
@@ -36,7 +33,7 @@ const WelcomeSection = () => {
           onClick={() => console.log('Початок роботи')} 
         />
       </Box>
-    </Paper>
+    </Box>
   );
 };
 

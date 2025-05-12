@@ -10,13 +10,13 @@ const JoinUsSection = () => {
 
   return (
     <Box className="join-us-box">
-      <Typography variant="h4" gutterBottom className="section-title">
+      <Typography variant="h4" gutterBottom className="join-us-section-title">
         Приєднуйтесь до нас
       </Typography>
       
-      <Typography variant="body1" className="section-text center-text">
+      <p className="join-us-section-text">
         Якщо ви бажаєте стати частиною нашої команди волонтерів або маєте ресурси, якими готові поділитися, зареєструйтесь на нашій платформі. Разом ми зможемо зробити більше для тих, хто потребує допомоги.
-      </Typography>
+      </p>
       
       <Box className="action-button-container">
         <ActionButton 
