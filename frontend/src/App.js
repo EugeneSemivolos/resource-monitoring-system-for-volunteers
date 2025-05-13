@@ -1,17 +1,53 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import MainPage from './components/main-page/MainPage';
 import Mission from './components/main-page/mission/Mission';
 import Navigation from './components/navigation/Navigation';
 import ResourcesPage from './components/resources-page/ResourcesPage';
 import VolunteersPage from './components/volunteers-page/VolunteersPage';
 import RegisterPage from './components/auth/RegisterPage';
+import { UserProvider } from './contexts/UserContext';
 import './App.css';
 
-function App() {
-  const [navValue, setNavValue] = React.useState(0);
+// створення обгортача для обробки стану розташування
+const MainContent = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }) => {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // перевірка, чи є стан з навігації
+    if (location.state && location.state.showLoginModal) {
+      setLoginModalOpen(true);
+    }
+  }, [location, setLoginModalOpen]);
 
-  // Ефект параллакса при прокрутці
+  return (
+    <div className="app-wrapper parallax-container">
+      {/* фонове зображення з ефектом параллакса */}
+      <div className="parallax-background"></div>
+      <div className="parallax-overlay"></div>
+      
+      <Navigation 
+        navValue={navValue} 
+        setNavValue={setNavValue}
+        loginModalOpen={loginModalOpen}
+        setLoginModalOpen={setLoginModalOpen}
+      />
+      
+      <div className="content-wrapper">
+        {navValue === 0 && <MainPage />}
+        {navValue === 1 && <ResourcesPage />}
+        {navValue === 2 && <VolunteersPage />}
+        {navValue === 3 && <Mission />}
+      </div>
+    </div>
+  );
+};
+
+function App() {
+  const [navValue, setNavValue] = useState(0);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+
+  // ефект параллакса при прокрутці
   useEffect(() => {
     let ticking = false;
     let lastScrollY = 0;
@@ -31,7 +67,7 @@ function App() {
       }
     };
 
-    // Ініціалізуємо позицію при завантаженні сторінки
+    // ініціалізуємо позицію при завантаженні сторінки
     handleScroll();
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -41,33 +77,27 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route 
-          path="/register" 
-          element={<RegisterPage />} 
-        />
-        <Route 
-          path="/*"
-          element={
-            <div className="app-wrapper parallax-container">
-              {/* Фонове зображення з ефектом параллакса */}
-              <div className="parallax-background"></div>
-              <div className="parallax-overlay"></div>
-              
-              <Navigation navValue={navValue} setNavValue={setNavValue} />
-              
-              <div className="content-wrapper">
-                {navValue === 0 && <MainPage />}
-                {navValue === 1 && <ResourcesPage />}
-                {navValue === 2 && <VolunteersPage />}
-                {navValue === 3 && <Mission />}
-              </div>
-            </div>
-          } 
-        />
-      </Routes>
-    </BrowserRouter>
+    <UserProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route 
+            path="/register" 
+            element={<RegisterPage />} 
+          />
+          <Route 
+            path="/*"
+            element={
+              <MainContent 
+                navValue={navValue} 
+                setNavValue={setNavValue}
+                loginModalOpen={loginModalOpen}
+                setLoginModalOpen={setLoginModalOpen}
+              />
+            } 
+          />
+        </Routes>
+      </BrowserRouter>
+    </UserProvider>
   );
 }
 

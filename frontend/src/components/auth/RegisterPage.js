@@ -6,10 +6,13 @@ import {
   Button,
   Typography,
   Box,
-  Avatar
+  Avatar,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useNavigate } from 'react-router-dom';
+import { volunteerService } from '../../services/api';
 import './RegisterPage.css';
 
 const RegisterPage = () => {
@@ -30,6 +33,8 @@ const RegisterPage = () => {
   });
   
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   // Ефект параллакса при прокрутці
   useEffect(() => {
@@ -83,11 +88,43 @@ const RegisterPage = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    if (formData.password !== formData.confirmPassword) {
+      setError('Паролі не співпадають!');
+      return false;
+    }
+    if (formData.password.length < 8) {
+      setError('Пароль повинен містити щонайменше 8 символів!');
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Registration form submitted:', formData);
-    // TODO: Add API call to register the volunteer
-    navigate('/');
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      // Відправка даних на сервер
+      await volunteerService.registerVolunteer(formData);
+      
+      // Перенаправлення на домашню сторінку з відкритим модальним вікном входу
+      navigate('/', { state: { showLoginModal: true } });
+    } catch (error) {
+      // Обробка конкретних випадків помилок
+      if (error.response && error.response.data && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError('Помилка при реєстрації. Спробуйте ще раз.');
+      }
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -354,13 +391,25 @@ const RegisterPage = () => {
                 variant="contained"
                 color="primary"
                 className="submit-button"
+                disabled={isSubmitting}
               >
-                Зареєструватися
+                {isSubmitting ? 'Реєстрація...' : 'Зареєструватися'}
               </Button>
             </Box>
           </form>
         </Paper>
       </Container>
+      
+      <Snackbar 
+        open={!!error} 
+        autoHideDuration={6000} 
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

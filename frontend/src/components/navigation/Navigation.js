@@ -1,22 +1,45 @@
-import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Tabs, Tab } from '@mui/material';
+import React from 'react';
+import { AppBar, Toolbar, Typography, IconButton, Tabs, Tab, Avatar, Menu, MenuItem } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { useNavigate } from 'react-router-dom';
 import LoginModal from '../auth/LoginModal';
+import { useUser } from '../../contexts/UserContext';
 import './Navigation.css';
 
-const Navigation = ({ navValue, setNavValue }) => {
-  const [loginOpen, setLoginOpen] = useState(false);
+const Navigation = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }) => {
+  const navigate = useNavigate();
+  const { user, logout, isAuthenticated } = useUser();
+  const [anchorEl, setAnchorEl] = React.useState(null);
   
   const handleLogoClick = () => {
     setNavValue(0);
   };
   
-  const handleAvatarClick = () => {
-    setLoginOpen(true);
+  const handleAvatarClick = (event) => {
+    if (isAuthenticated) {
+      setAnchorEl(event.currentTarget);
+    } else {
+      setLoginModalOpen(true);
+    }
+  };
+  
+  const handleMenuClose = () => {
+    setAnchorEl(null);
   };
   
   const handleLoginClose = () => {
-    setLoginOpen(false);
+    setLoginModalOpen(false);
+  };
+  
+  const handleLogout = () => {
+    logout();
+    handleMenuClose();
+  };
+  
+  const handleProfile = () => {
+    // Тут можна додати навігацію до сторінки профіля
+    console.log('Navigate to profile');
+    handleMenuClose();
   };
 
   return (
@@ -48,13 +71,39 @@ const Navigation = ({ navValue, setNavValue }) => {
             className="user-icon"
             onClick={handleAvatarClick}
           >
-            <AccountCircleIcon />
+            {isAuthenticated && user ? (
+              <Avatar 
+                alt={`${user.firstName} ${user.lastName}`} 
+                src={user.photoUrl} 
+                className="user-avatar"
+              />
+            ) : (
+              <AccountCircleIcon />
+            )}
           </IconButton>
         </Toolbar>
       </AppBar>
       
+      {/* меню користувача */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        <MenuItem onClick={handleProfile}>Мій профіль</MenuItem>
+        <MenuItem onClick={handleLogout}>Вийти</MenuItem>
+      </Menu>
+      
       <LoginModal 
-        open={loginOpen} 
+        open={loginModalOpen} 
         onClose={handleLoginClose} 
       />
     </>

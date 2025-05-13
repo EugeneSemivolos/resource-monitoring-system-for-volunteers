@@ -29,7 +29,7 @@ const CarouselCard = ({ icon, name, description }) => {
           </Box>
           <Typography 
             variant="h5" 
-            component="h2" 
+            component="div" 
             sx={{ 
               fontWeight: 600, 
               fontSize: '1.8rem',
