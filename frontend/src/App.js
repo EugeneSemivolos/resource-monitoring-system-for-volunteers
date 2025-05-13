@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MainPage from './components/main-page/MainPage';
 import Mission from './components/main-page/mission/Mission';
 import Navigation from './components/navigation/Navigation';
 import ResourcesPage from './components/resources-page/ResourcesPage';
 import VolunteersPage from './components/volunteers-page/VolunteersPage';
+import RegisterPage from './components/auth/RegisterPage';
 import './App.css';
 
 function App() {
@@ -39,20 +41,33 @@ function App() {
   }, []);
 
   return (
-    <div className="app-wrapper parallax-container">
-      {/* Фонове зображення з ефектом параллакса */}
-      <div className="parallax-background"></div>
-      <div className="parallax-overlay"></div>
-      
-      <Navigation navValue={navValue} setNavValue={setNavValue} />
-      
-      <div className="content-wrapper">
-        {navValue === 0 && <MainPage />}
-        {navValue === 1 && <ResourcesPage />}
-        {navValue === 2 && <VolunteersPage />}
-        {navValue === 3 && <Mission />}
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route 
+          path="/register" 
+          element={<RegisterPage />} 
+        />
+        <Route 
+          path="/*"
+          element={
+            <div className="app-wrapper parallax-container">
+              {/* Фонове зображення з ефектом параллакса */}
+              <div className="parallax-background"></div>
+              <div className="parallax-overlay"></div>
+              
+              <Navigation navValue={navValue} setNavValue={setNavValue} />
+              
+              <div className="content-wrapper">
+                {navValue === 0 && <MainPage />}
+                {navValue === 1 && <ResourcesPage />}
+                {navValue === 2 && <VolunteersPage />}
+                {navValue === 3 && <Mission />}
+              </div>
+            </div>
+          } 
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

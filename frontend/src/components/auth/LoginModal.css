@@ -1,0 +1,65 @@
+.login-dialog .MuiPaper-root {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.login-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.login-content {
+  padding-top: 20px;
+  padding-bottom: 10px;
+}
+
+.login-input {
+  margin-bottom: 15px;
+}
+
+.close-button {
+  padding: 6px;
+}
+
+.forgot-password-link {
+  text-align: right;
+  margin-top: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
+}
+
+.login-actions {
+  flex-direction: column;
+  padding: 16px 24px 24px;
+}
+
+.login-button {
+  margin-bottom: 15px;
+  padding: 10px;
+  font-weight: 600;
+}
+
+.create-account-text {
+  text-align: center;
+  color: #666;
+}
+
+.create-account-link {
+  color: #1976d2;
+  margin-left: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.create-account-link:hover {
+  text-decoration: underline;
+} 
