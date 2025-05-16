@@ -15,7 +15,7 @@ import './VolunteerCard.css';
 
 // Константи
 const API_BASE_URL = 'http://localhost:8000';
-const FALLBACK_AVATAR = 'https://via.placeholder.com/150';
+const DEFAULT_AVATAR = '/images/default_avatar.png';
 
 const VolunteerCard = ({ volunteer }) => {
   // Допоміжні функції
@@ -27,15 +27,20 @@ const VolunteerCard = ({ volunteer }) => {
   };
 
   const getPhotoUrl = () => {
-    if (!volunteer.photo || typeof volunteer.photo !== 'string' || volunteer.photo.length === 0) {
-      return null;
+    if (!volunteer.photo) {
+      return DEFAULT_AVATAR;
     }
+    // Якщо URL вже повний (починається з http), використовуємо його як є
+    if (volunteer.photo.startsWith('http')) {
+      return volunteer.photo;
+    }
+    // Інакше додаємо базовий URL
     return `${API_BASE_URL}${volunteer.photo}`;
   };
 
   const handleImageError = (e) => {
     e.target.onerror = null;
-    e.target.src = FALLBACK_AVATAR;
+    e.target.src = DEFAULT_AVATAR;
   };
 
   const parseSkills = (skills) => {
@@ -62,18 +67,13 @@ const VolunteerCard = ({ volunteer }) => {
   );
 
   const renderAvatar = () => {
-    if (photoUrl) {
-      return (
-        <Avatar 
-          src={photoUrl} 
-          alt={fullName} 
-          className="volunteer-avatar"
-          onError={handleImageError}
-        />
-      );
-    } 
     return (
-      <Avatar className="volunteer-avatar">
+      <Avatar 
+        src={photoUrl} 
+        alt={fullName} 
+        className="volunteer-avatar"
+        onError={handleImageError}
+      >
         <PersonIcon />
       </Avatar>
     );
