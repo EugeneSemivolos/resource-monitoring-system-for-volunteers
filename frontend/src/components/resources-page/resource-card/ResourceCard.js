@@ -75,9 +75,18 @@ const ResourceCard = ({ resource }) => {
 
   // Допоміжні функції
   function getImageUrl(photoPath) {
-    if (!photoPath || typeof photoPath !== 'string' || photoPath.length === 0) {
+    if (!photoPath) {
       return notFoundImage;
     }
+    // Якщо URL вже повний (починається з http), використовуємо його як є
+    if (typeof photoPath === 'string' && photoPath.startsWith('http')) {
+      return photoPath;
+    }
+    // Якщо це об'єкт з URL
+    if (typeof photoPath === 'object' && photoPath.url) {
+      return photoPath.url;
+    }
+    // Інакше додаємо базовий URL
     return `${API_BASE_URL}${photoPath}`;
   }
 

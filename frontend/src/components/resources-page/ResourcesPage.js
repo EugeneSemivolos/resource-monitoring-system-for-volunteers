@@ -3,11 +3,14 @@ import {
   Container,
   Typography,
   CircularProgress,
+  Button,
 } from '@mui/material';
 import CategoryIcon from '@mui/icons-material/Category';
 import SearchComponent from './search-component/SearchComponent';
 import ResourceCard from './resource-card/ResourceCard';
 import './ResourcesPage.css';
+import AddResourceModal from './AddResourceModal';
+import { useUser } from '../../contexts/UserContext';
 
 // Константи
 const API_URL = 'http://localhost:8000/api/resources/';
@@ -43,6 +46,8 @@ const ResourcesPage = () => {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { isAuthenticated } = useUser();
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   // Отримання ресурсів з API
   useEffect(() => {
@@ -163,7 +168,6 @@ const ResourcesPage = () => {
   return (
     <Container maxWidth="lg" className="resources-container">
       {renderHeader()}
-
       <SearchComponent 
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -174,7 +178,42 @@ const ResourcesPage = () => {
         categories={CATEGORIES_ARRAY}
         locations={uniqueLocations}
       />
-
+      {isAuthenticated && (
+        <div className="add-resource-container">
+          <div className="add-resource-content">
+            <span className="add-resource-title">ДОДАТИ РЕСУРС</span>
+            <Button
+              variant="contained"
+              color="primary"
+              className="add-resource-button"
+              onClick={() => setAddModalOpen(true)}
+              aria-label="Додати ресурс"
+            >
+              +
+            </Button>
+          </div>
+        </div>
+      )}
+      <AddResourceModal 
+        open={addModalOpen} 
+        onClose={() => setAddModalOpen(false)} 
+        onResourceAdded={(newResource) => {
+          setResources(prev => [
+            {
+              id: newResource.id,
+              name: newResource.name,
+              category: newResource.category.charAt(0).toUpperCase() + newResource.category.slice(1),
+              location: newResource.storage_location,
+              quantity: parseFloat(newResource.quantity),
+              unit: newResource.unit,
+              description: newResource.comment || 'Опис відсутній',
+              photo: newResource.photo || null,
+              status: newResource.status
+            },
+            ...prev
+          ]);
+        }}
+      />
       {loading ? renderLoading() :
        error ? renderError() :
        filteredResources.length === 0 ? renderEmptyResults() :

@@ -150,15 +150,12 @@ const volunteerService = {
         password: credentials.password
       };
       
-      console.log('Спроба входу для користувача:', credentials.email);
       const response = await api.post('/volunteers/login/', loginData);
       
       if (response.data && response.data.token) {
         // Зберігаємо токен авторизації та дані користувача
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('currentUser', JSON.stringify(response.data.volunteer));
-        
-        console.log('Успішний вхід:', response.data.volunteer);
         
         return {
           success: true,
@@ -170,8 +167,6 @@ const volunteerService = {
       
       throw new Error('Неправильні дані автентифікації');
     } catch (error) {
-      console.error('Помилка входу:', error);
-      
       // Повертаємо зрозуміле повідомлення про помилку
       if (error.response && error.response.data && error.response.data.message) {
         throw new Error(error.response.data.message);
@@ -222,5 +217,49 @@ const volunteerService = {
   }
 };
 
-export { volunteerService };
+// API service для операцій з ресурсами
+const resourceService = {
+  // Додати новий ресурс
+  addResource: async (resourceData) => {
+    try {
+      const formData = new FormData();
+      // Маппінг полів з frontend до backend моделі
+      const fieldMapping = {
+        name: 'name',
+        category: 'category',
+        quantity: 'quantity',
+        unit: 'unit',
+        storage_location: 'storage_location',
+        comment: 'comment',
+        organization: 'organization',
+        added_by: 'added_by'
+      };
+
+      Object.keys(resourceData).forEach(key => {
+        if (key !== 'photo' && resourceData[key] !== null && resourceData[key] !== undefined) {
+          const backendField = fieldMapping[key] || key;
+          formData.append(backendField, resourceData[key]);
+        }
+      });
+
+      if (resourceData.photo) {
+        formData.append('photo', resourceData.photo);
+      }
+
+      const response = await api.post('/resources/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
+  }
+};
+
+export { volunteerService, resourceService };
 export default api; 
