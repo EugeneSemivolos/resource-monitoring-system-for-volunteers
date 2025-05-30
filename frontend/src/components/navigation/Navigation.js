@@ -42,6 +42,26 @@ const Navigation = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }
     handleMenuClose();
   };
 
+  const handleTabChange = (event, newValue) => {
+    setNavValue(newValue);
+    switch (newValue) {
+      case 0:
+        navigate('/');
+        break;
+      case 1:
+        navigate('/resources');
+        break;
+      case 2:
+        navigate('/volunteers');
+        break;
+      case 3:
+        navigate('/mission');
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <>
       <AppBar position="fixed" className="app-bar">
@@ -55,9 +75,7 @@ const Navigation = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }
           </Typography>
           <Tabs 
             value={navValue} 
-            onChange={(event, newValue) => {
-              setNavValue(newValue);
-            }} 
+            onChange={handleTabChange}
             aria-label="navigation tabs"
             className="navigation-tabs"
           >

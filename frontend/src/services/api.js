@@ -258,6 +258,19 @@ const resourceService = {
       }
       throw error;
     }
+  },
+  
+  // Оновити ресурс
+  updateResource: async (id, updateData) => {
+    try {
+      const response = await api.patch(`/resources/${id}/`, updateData);
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
   }
 };
 

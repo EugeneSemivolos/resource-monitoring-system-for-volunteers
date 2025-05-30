@@ -11,8 +11,6 @@ import {
 import PersonIcon from '@mui/icons-material/Person';
 import BusinessIcon from '@mui/icons-material/Business';
 import BuildIcon from '@mui/icons-material/Build';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import EmailIcon from '@mui/icons-material/Email';
 import VolunteerDetailsModal from '../volunteer-details/VolunteerDetailsModal';
 import './VolunteerCard.css';
 

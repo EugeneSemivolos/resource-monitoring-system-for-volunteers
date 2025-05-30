@@ -6,6 +6,7 @@ import Navigation from './components/navigation/Navigation';
 import ResourcesPage from './components/resources-page/ResourcesPage';
 import VolunteersPage from './components/volunteers-page/VolunteersPage';
 import RegisterPage from './components/auth/RegisterPage';
+import ResourceDetailsPage from './components/resources-page/resource-details/ResourceDetailsPage';
 import { UserProvider } from './contexts/UserContext';
 import './App.css';
 
@@ -83,6 +84,10 @@ function App() {
           <Route 
             path="/register" 
             element={<RegisterPage />} 
+          />
+          <Route 
+            path="/resources/:id" 
+            element={<ResourceDetailsPage />} 
           />
           <Route 
             path="/*"

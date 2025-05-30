@@ -52,7 +52,7 @@ class VolunteerSerializer(serializers.ModelSerializer):
         model = Volunteer
         fields = '__all__'
         extra_kwargs = {'user': {'read_only': True}}
-        
+
     def create(self, validated_data):
         # Видаляємо пароль з даних, які будуть використані для створення Volunteer
         password = validated_data.pop('password', None)

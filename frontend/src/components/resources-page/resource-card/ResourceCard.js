@@ -11,11 +11,13 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CategoryIcon from '@mui/icons-material/Category';
 import notFoundImage from '../../../images/not_found.png';
 import './ResourceCard.css';
+import { useNavigate } from 'react-router-dom';
 
 // Константи
 const API_BASE_URL = 'http://localhost:8000';
 
 const ResourceCard = ({ resource }) => {
+  const navigate = useNavigate();
   // Обробка URL зображення
   const imageUrl = getImageUrl(resource.photo);
 
@@ -97,7 +99,7 @@ const ResourceCard = ({ resource }) => {
 
   // Основний рендер
   return (
-    <Card className="resource-card">
+    <Card className="resource-card" onClick={() => navigate(`/resources/${resource.id}`)} sx={{ cursor: 'pointer' }}>
       <CardContent>
         {renderHeader()}
         <Divider className="resource-divider" />
