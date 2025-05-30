@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -11,6 +11,9 @@ import {
 import PersonIcon from '@mui/icons-material/Person';
 import BusinessIcon from '@mui/icons-material/Business';
 import BuildIcon from '@mui/icons-material/Build';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import EmailIcon from '@mui/icons-material/Email';
+import VolunteerDetailsModal from '../volunteer-details/VolunteerDetailsModal';
 import './VolunteerCard.css';
 
 // Константи
@@ -18,6 +21,16 @@ const API_BASE_URL = 'http://localhost:8000';
 const DEFAULT_AVATAR = '/images/default_avatar.png';
 
 const VolunteerCard = ({ volunteer }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleCardClick = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   // Допоміжні функції
   const getFullName = () => {
     const lastName = volunteer.last_name || '';
@@ -98,7 +111,7 @@ const VolunteerCard = ({ volunteer }) => {
   };
 
   const renderSkills = () => {
-    if (!volunteer.skills) return null;
+    if (!skills.length) return null;
     
     return (
       <Box className="volunteer-info-section">
@@ -113,7 +126,7 @@ const VolunteerCard = ({ volunteer }) => {
             <Chip 
               key={index} 
               label={skill} 
-              size="small" 
+              size="small"
               className="volunteer-skill-chip"
             />
           ))}
@@ -139,15 +152,27 @@ const VolunteerCard = ({ volunteer }) => {
 
   // Основний рендер
   return (
-    <Card className="volunteer-card">
-      <CardContent>
-        {renderHeader()}
-        <Divider className="volunteer-divider" />
-        {renderOrganization()}
-        {renderSkills()}
-        {renderDescription()}
-      </CardContent>
-    </Card>
+    <>
+      <Card 
+        className="volunteer-card"
+        onClick={handleCardClick}
+        sx={{ cursor: 'pointer' }}
+      >
+        <CardContent>
+          {renderHeader()}
+          <Divider className="volunteer-divider" />
+          {renderOrganization()}
+          {renderSkills()}
+          {renderDescription()}
+        </CardContent>
+      </Card>
+
+      <VolunteerDetailsModal
+        volunteer={volunteer}
+        open={isModalOpen}
+        onClose={handleCloseModal}
+      />
+    </>
   );
 };
 

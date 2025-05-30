@@ -1,0 +1,104 @@
+.volunteer-details-modal .volunteer-details-header {
+  border-bottom: 1px solid rgba(25, 118, 210, 0.2);
+  padding: 1.3rem;
+  display: flex;
+  justify-content: center;
+}
+
+.volunteer-details-modal .modal-title {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0px 16px;
+  margin-left: 26px;
+  position: relative;
+}
+
+.volunteer-details-modal .volunteer-header-content {
+  display: flex;
+  width: 100%;
+  margin-top: 16px;
+  padding-right: 32px;
+}
+
+.volunteer-details-modal .volunteer-name-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  margin-right: 24px;
+  color: #000;
+}
+
+.volunteer-details-modal .modal-volunteer-last-name {
+  font-weight: 700;
+  font-size: 1.75rem;
+  margin-bottom: 4px;
+}
+
+.volunteer-details-modal .modal-volunteer-first-name {
+  font-weight: 400;
+  font-size: 1.5rem;
+  
+  margin-bottom: 2px;
+}
+
+.volunteer-details-modal .modal-volunteer-middle-name {
+  font-weight: 400;
+  font-size: 1.5rem;
+  font-style: italic;
+}
+
+.volunteer-details-modal .volunteer-avatar {
+  width: 140px !important;
+  height: 140px !important;
+  background-color: #3f51b5 !important;
+  border-radius: 8px !important;
+  object-fit: cover;
+}
+
+.volunteer-details-modal .close-button {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.volunteer-details-modal .close-button:hover {
+  background-color: rgba(255, 255, 255, 1) !important;
+}
+
+.volunteer-details-modal .section-divider {
+  margin: 10px 0;
+}
+
+.volunteer-details-modal .contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.volunteer-details-modal .contact-item:last-child {
+  margin-bottom: 0;
+}
+
+.volunteer-details-modal .additional-info p {
+  font-size: 0.9rem;
+}
+
+.volunteer-details-modal .skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.volunteer-details-modal .contact-info,
+.volunteer-details-modal .description-section, 
+.volunteer-details-modal .skills-section, 
+.volunteer-details-modal .additional-info,
+.volunteer-details-modal .organization-section {
+  padding: 4px 16px;
+}

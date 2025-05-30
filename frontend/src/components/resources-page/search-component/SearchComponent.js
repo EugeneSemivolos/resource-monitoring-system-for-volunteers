@@ -85,15 +85,11 @@ const SearchComponent = ({
               label="Категорія"
               onChange={(e) => setCategoryFilter(e.target.value)}
               MenuProps={menuProps}
-              slotProps={{
-                root: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CategoryIcon color="action" />
-                    </InputAdornment>
-                  )
-                }
-              }}
+              startAdornment={
+                <InputAdornment position="start">
+                  <CategoryIcon color="action" />
+                </InputAdornment>
+              }
             >
               {categories.map(category => (
                 <MenuItem key={category} value={category}>
@@ -112,15 +108,11 @@ const SearchComponent = ({
               label="Локація"
               onChange={(e) => setLocationFilter(e.target.value)}
               MenuProps={menuProps}
-              slotProps={{
-                root: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LocationOnIcon color="action" />
-                    </InputAdornment>
-                  )
-                }
-              }}
+              startAdornment={
+                <InputAdornment position="start">
+                  <LocationOnIcon color="action" />
+                </InputAdornment>
+              }
             >
               {locations.map(location => (
                 <MenuItem key={location} value={location}>
