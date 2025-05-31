@@ -12,7 +12,8 @@ const Navigation = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }
   const [anchorEl, setAnchorEl] = React.useState(null);
   
   const handleLogoClick = () => {
-    setNavValue(0);
+    setNavValue && setNavValue(0);
+    navigate('/');
   };
   
   const handleAvatarClick = (event) => {

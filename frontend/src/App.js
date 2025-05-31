@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MainPage from './components/main-page/MainPage';
 import Mission from './components/main-page/mission/Mission';
 import Navigation from './components/navigation/Navigation';
@@ -8,41 +8,8 @@ import VolunteersPage from './components/volunteers-page/VolunteersPage';
 import RegisterPage from './components/auth/RegisterPage';
 import ResourceDetailsPage from './components/resources-page/resource-details/ResourceDetailsPage';
 import { UserProvider } from './contexts/UserContext';
+import HistoryPage from './components/resources-page/HistoryPage';
 import './App.css';
-
-// створення обгортача для обробки стану розташування
-const MainContent = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }) => {
-  const location = useLocation();
-  
-  useEffect(() => {
-    // перевірка, чи є стан з навігації
-    if (location.state && location.state.showLoginModal) {
-      setLoginModalOpen(true);
-    }
-  }, [location, setLoginModalOpen]);
-
-  return (
-    <div className="app-wrapper parallax-container">
-      {/* фонове зображення з ефектом параллакса */}
-      <div className="parallax-background"></div>
-      <div className="parallax-overlay"></div>
-      
-      <Navigation 
-        navValue={navValue} 
-        setNavValue={setNavValue}
-        loginModalOpen={loginModalOpen}
-        setLoginModalOpen={setLoginModalOpen}
-      />
-      
-      <div className="content-wrapper">
-        {navValue === 0 && <MainPage />}
-        {navValue === 1 && <ResourcesPage />}
-        {navValue === 2 && <VolunteersPage />}
-        {navValue === 3 && <Mission />}
-      </div>
-    </div>
-  );
-};
 
 function App() {
   const [navValue, setNavValue] = useState(0);
@@ -52,10 +19,8 @@ function App() {
   useEffect(() => {
     let ticking = false;
     let lastScrollY = 0;
-    
     const handleScroll = () => {
       lastScrollY = window.scrollY;
-      
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const parallaxBg = document.querySelector('.parallax-background');
@@ -67,10 +32,7 @@ function App() {
         ticking = true;
       }
     };
-
-    // ініціалізуємо позицію при завантаженні сторінки
     handleScroll();
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -80,27 +42,27 @@ function App() {
   return (
     <UserProvider>
       <BrowserRouter>
-        <Routes>
-          <Route 
-            path="/register" 
-            element={<RegisterPage />} 
+        <div className="app-wrapper parallax-container">
+          <div className="parallax-background"></div>
+          <div className="parallax-overlay"></div>
+          <Navigation 
+            navValue={navValue} 
+            setNavValue={setNavValue}
+            loginModalOpen={loginModalOpen}
+            setLoginModalOpen={setLoginModalOpen}
           />
-          <Route 
-            path="/resources/:id" 
-            element={<ResourceDetailsPage />} 
-          />
-          <Route 
-            path="/*"
-            element={
-              <MainContent 
-                navValue={navValue} 
-                setNavValue={setNavValue}
-                loginModalOpen={loginModalOpen}
-                setLoginModalOpen={setLoginModalOpen}
-              />
-            } 
-          />
-        </Routes>
+          <div className="content-wrapper">
+            <Routes>
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/resources/:id" element={<ResourceDetailsPage navValue={navValue} setNavValue={setNavValue} loginModalOpen={loginModalOpen} setLoginModalOpen={setLoginModalOpen} />} />
+              <Route path="/history" element={<HistoryPage navValue={navValue} setNavValue={setNavValue} loginModalOpen={loginModalOpen} setLoginModalOpen={setLoginModalOpen} />} />
+              <Route path="/resources" element={<ResourcesPage />} />
+              <Route path="/volunteers" element={<VolunteersPage />} />
+              <Route path="/mission" element={<Mission />} />
+              <Route path="/" element={<MainPage />} />
+            </Routes>
+          </div>
+        </div>
       </BrowserRouter>
     </UserProvider>
   );

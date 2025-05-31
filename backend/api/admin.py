@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Resource, Volunteer
+from .models import Resource, Volunteer, ActionLog
 
 # Register your models here.
 @admin.register(Resource)
@@ -44,3 +44,10 @@ class VolunteerAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+@admin.register(ActionLog)
+class ActionLogAdmin(admin.ModelAdmin):
+    list_display = ('id', 'action', 'subject', 'timestamp')
+    list_filter = ('action', 'subject')
+    search_fields = ('action', 'subject')
+    date_hierarchy = 'timestamp'

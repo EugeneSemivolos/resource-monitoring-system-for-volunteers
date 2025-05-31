@@ -11,6 +11,7 @@ import ResourceCard from './resource-card/ResourceCard';
 import './ResourcesPage.css';
 import AddResourceModal from './AddResourceModal';
 import { useUser } from '../../contexts/UserContext';
+import { useLocation } from 'react-router-dom';
 
 // Константи
 const API_URL = 'http://localhost:8000/api/resources/';
@@ -48,6 +49,7 @@ const ResourcesPage = () => {
   const [error, setError] = useState(null);
   const { isAuthenticated } = useUser();
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const location = useLocation();
 
   // Отримання ресурсів з API
   useEffect(() => {
@@ -74,7 +76,16 @@ const ResourcesPage = () => {
     };
     
     fetchResources();
-  }, []);
+    // eslint-disable-next-line
+  }, [location.key]);
+  
+  useEffect(() => {
+    if (location.state && location.state.deletedResourceId) {
+      setResources(prev => prev.filter(r => r.id !== location.state.deletedResourceId));
+      window.history.replaceState({}, document.title); // очищаємо state після обробки
+    }
+    // eslint-disable-next-line
+  }, [location.state]);
   
   // Допоміжна функція для обробки відповіді API (обробка пагінації)
   const processApiResponse = (data) => {
@@ -190,6 +201,15 @@ const ResourcesPage = () => {
               aria-label="Додати ресурс"
             >
               +
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              className="history-button"
+              onClick={() => window.location.href = '/history'}
+              aria-label="Історія змін"
+            >
+              Історія змін
             </Button>
           </div>
         </div>

@@ -82,3 +82,25 @@ class Volunteer(models.Model):
             models.Index(fields=['registration_date']),
             models.Index(fields=['organization']),
         ]
+
+class ActionLog(models.Model):
+    ACTION_CHOICES = [
+        ('added', 'Додано'),
+        ('updated', 'Змінено'),
+        ('deleted', 'Видалено'),
+    ]
+    SUBJECT_CHOICES = [
+        ('resource', 'Ресурс'),
+        ('volunteer', 'Волонтер'),
+    ]
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES, verbose_name='Дія')
+    subject = models.CharField(max_length=20, choices=SUBJECT_CHOICES, verbose_name='Предмет')
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name='Час дії')
+    description = models.TextField(blank=True, null=True, verbose_name='Опис дії')
+
+    def __str__(self):
+        return f"{self.get_action_display()} {self.get_subject_display()} (#{self.id})"
+
+    class Meta:
+        verbose_name = 'Журнал дій'
+        verbose_name_plural = 'Журнал дій'

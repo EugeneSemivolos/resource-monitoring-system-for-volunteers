@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from django.shortcuts import render
 from rest_framework import viewsets, filters, status
-from .models import Resource, Volunteer
+from .models import Resource, Volunteer, ActionLog
 from rest_framework import serializers
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils.decorators import method_decorator
@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.db import transaction
 import json
 import re
+from django.utils.dateparse import parse_date
 
 @api_view(['GET'])
 def hello_world(request):
@@ -43,6 +44,38 @@ class ResourceViewSet(viewsets.ModelViewSet):
     @method_decorator(cache_page(60*60))  # Кешування на 1 годину
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        ActionLog.objects.create(
+            action='added', subject='resource',
+            description=f"Додано новий ресурс: {instance.name} (ID: {instance.id})"
+        )
+
+    def perform_update(self, serializer):
+        old_instance = self.get_object()
+        old_data = {field.name: getattr(old_instance, field.name) for field in old_instance._meta.fields}
+        instance = serializer.save()
+        new_data = {field.name: getattr(instance, field.name) for field in instance._meta.fields}
+        changed_fields = []
+        for key in new_data:
+            if old_data[key] != new_data[key]:
+                changed_fields.append(f"{key}: '{old_data[key]}' → '{new_data[key]}'")
+        description = f"Змінено ресурс: {instance.name} (ID: {instance.id}). "
+        if changed_fields:
+            description += "Змінені поля: " + "; ".join(changed_fields)
+        else:
+            description += "Без змін у полях."
+        ActionLog.objects.create(
+            action='updated', subject='resource', description=description
+        )
+
+    def perform_destroy(self, instance):
+        ActionLog.objects.create(
+            action='deleted', subject='resource',
+            description=f"Видалено ресурс: {instance.name} (ID: {instance.id})"
+        )
+        instance.delete()
 
 # Створюємо серіалізатор для моделі Volunteer
 class VolunteerSerializer(serializers.ModelSerializer):
@@ -77,6 +110,38 @@ class VolunteerViewSet(viewsets.ModelViewSet):
     @method_decorator(cache_page(60*60))  # Кешування на 1 годину
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
+    
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        ActionLog.objects.create(
+            action='added', subject='volunteer',
+            description=f"Додано нового волонтера: {instance.first_name} {instance.last_name} (ID: {instance.id})"
+        )
+
+    def perform_update(self, serializer):
+        old_instance = self.get_object()
+        old_data = {field.name: getattr(old_instance, field.name) for field in old_instance._meta.fields}
+        instance = serializer.save()
+        new_data = {field.name: getattr(instance, field.name) for field in instance._meta.fields}
+        changed_fields = []
+        for key in new_data:
+            if old_data[key] != new_data[key]:
+                changed_fields.append(f"{key}: '{old_data[key]}' → '{new_data[key]}'")
+        description = f"Змінено волонтера: {instance.first_name} {instance.last_name} (ID: {instance.id}). "
+        if changed_fields:
+            description += "Змінені поля: " + "; ".join(changed_fields)
+        else:
+            description += "Без змін у полях."
+        ActionLog.objects.create(
+            action='updated', subject='volunteer', description=description
+        )
+
+    def perform_destroy(self, instance):
+        ActionLog.objects.create(
+            action='deleted', subject='volunteer',
+            description=f"Видалено волонтера: {instance.first_name} {instance.last_name} (ID: {instance.id})"
+        )
+        instance.delete()
     
     def create(self, request, *args, **kwargs):
         """
@@ -254,3 +319,34 @@ class VolunteerViewSet(viewsets.ModelViewSet):
                 {"message": "Помилка при вході в систему."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+@api_view(['GET'])
+def action_log_list(request):
+    subject = request.GET.get('subject')
+    action = request.GET.get('action')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    offset = int(request.GET.get('offset', 0))
+    limit = 10
+    logs = ActionLog.objects.all().order_by('-timestamp')
+    if subject:
+        logs = logs.filter(subject=subject)
+    if action:
+        logs = logs.filter(action=action)
+    if date_from:
+        logs = logs.filter(timestamp__date__gte=parse_date(date_from))
+    if date_to:
+        logs = logs.filter(timestamp__date__lte=parse_date(date_to))
+    total = logs.count()
+    logs = logs[offset:offset+limit]
+    data = [
+        {
+            'id': log.id,
+            'action': log.get_action_display(),
+            'subject': log.get_subject_display(),
+            'timestamp': log.timestamp.isoformat(),
+            'description': log.description,
+        }
+        for log in logs
+    ]
+    return Response({'results': data, 'total': total}, status=status.HTTP_200_OK)
