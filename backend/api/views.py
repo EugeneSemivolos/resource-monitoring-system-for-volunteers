@@ -290,6 +290,13 @@ class VolunteerViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_404_NOT_FOUND
                 )
             
+            # Додаю перевірку статусу волонтера
+            if volunteer.status != 'active':
+                return Response(
+                    {"message": "Ваш акаунт ще не підтверджено адміністратором. Дочекайтеся підтвердження."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
             # Оновлюємо час останнього входу
             volunteer.last_login = timezone.now()
             volunteer.save()

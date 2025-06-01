@@ -1,11 +1,13 @@
 import React from 'react';
 import { Typography, Box } from '@mui/material';
 import ActionButton from '../action-button/ActionButton';
+import { useNavigate } from 'react-router-dom';
 import './JoinUsSection.css';
 
 const JoinUsSection = () => {
+  const navigate = useNavigate();
   const handleRegisterClick = () => {
-    console.log('Відкрити форму реєстрації');
+    navigate('/register');
   };
 
   return (
