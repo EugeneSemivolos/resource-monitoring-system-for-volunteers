@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Paper,
@@ -15,35 +15,45 @@ import { useNavigate } from 'react-router-dom';
 import { volunteerService } from '../../services/api';
 import './RegisterPage.css';
 
+const INITIAL_FORM_STATE = {
+  lastName: '',
+  firstName: '',
+  middleName: '',
+  phone: '',
+  email: '',
+  telegramId: '',
+  skills: '',
+  description: '',
+  organization: '',
+  password: '',
+  confirmPassword: '',
+  photoUrl: null
+};
+
+const VALIDATION_RULES = {
+  password: {
+    minLength: 8,
+    message: 'Пароль повинен містити щонайменше 8 символів!'
+  },
+  confirmPassword: {
+    match: 'password',
+    message: 'Паролі не співпадають!'
+  }
+};
+
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    lastName: '',
-    firstName: '',
-    middleName: '',
-    phone: '',
-    email: '',
-    telegramId: '',
-    skills: '',
-    description: '',
-    organization: '',
-    password: '',
-    confirmPassword: '',
-    photoUrl: null
-  });
-  
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // Ефект параллакса при прокрутці
-  useEffect(() => {
+  const handleParallax = useCallback(() => {
     let ticking = false;
     let lastScrollY = 0;
     
-    const handleScroll = () => {
+    const updateParallax = () => {
       lastScrollY = window.scrollY;
-      
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const parallaxBg = document.querySelector('.parallax-background');
@@ -56,92 +66,121 @@ const RegisterPage = () => {
       }
     };
 
-    // Ініціалізуємо позицію при завантаженні сторінки
-    handleScroll();
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    updateParallax();
+    window.addEventListener('scroll', updateParallax, { passive: true });
+    return () => window.removeEventListener('scroll', updateParallax);
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value
-    }));
-  };
+  useEffect(() => {
+    const cleanup = handleParallax();
+    return () => cleanup();
+  }, [handleParallax]);
 
-  const handlePhotoChange = (e) => {
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setError(null);
+  }, []);
+
+  const handlePhotoChange = useCallback((e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result);
-        setFormData(prevData => ({
-          ...prevData,
-          photoUrl: file
-        }));
+        setFormData(prev => ({ ...prev, photoUrl: file }));
       };
       reader.readAsDataURL(file);
     }
-  };
+  }, []);
 
-  const validateForm = () => {
-    if (formData.password !== formData.confirmPassword) {
-      setError('Паролі не співпадають!');
+  const validateForm = useCallback(() => {
+    if (formData.password.length < VALIDATION_RULES.password.minLength) {
+      setError(VALIDATION_RULES.password.message);
       return false;
     }
-    if (formData.password.length < 8) {
-      setError('Пароль повинен містити щонайменше 8 символів!');
+    if (formData.password !== formData.confirmPassword) {
+      setError(VALIDATION_RULES.confirmPassword.message);
       return false;
     }
     return true;
-  };
+  }, [formData.password, formData.confirmPassword]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
     
     setIsSubmitting(true);
     setError(null);
     
     try {
-      // Відправка даних на сервер
       await volunteerService.registerVolunteer(formData);
-      
-      // Перенаправлення на домашню сторінку з відкритим модальним вікном входу
-      // та станом для оновлення списку волонтерів
       navigate('/', { 
         state: { 
           showLoginModal: true,
-          refresh: true  // Додаємо флаг для оновлення списку волонтерів
+          refresh: true
         } 
       });
     } catch (error) {
-      // Обробка конкретних випадків помилок
-      if (error.response && error.response.data && error.response.data.message) {
-        setError(error.response.data.message);
-      } else {
-        setError('Помилка при реєстрації. Спробуйте ще раз.');
-      }
+      setError(error.response?.data?.message || 'Помилка при реєстрації. Спробуйте ще раз.');
       setIsSubmitting(false);
     }
   };
 
-  const handleCancel = () => {
-    navigate('/');
-  };
+  const renderField = useCallback(({ name, label, description, type = 'text', required = false }) => (
+    <Box className="field-container">
+      <Typography variant="caption" className="field-description">
+        {description}
+      </Typography>
+      <TextField
+        label={label}
+        name={name}
+        type={type}
+        value={formData[name]}
+        onChange={handleChange}
+        fullWidth
+        required={required}
+        variant="outlined"
+        className="form-field"
+        disabled={isSubmitting}
+      />
+    </Box>
+  ), [formData, handleChange, isSubmitting]);
+
+  const renderPhotoUpload = () => (
+    <Box className="photo-upload-container">
+      <input
+        type="file"
+        accept="image/*"
+        id="photo-upload"
+        onChange={handlePhotoChange}
+        style={{ display: 'none' }}
+      />
+      <label htmlFor="photo-upload">
+        <Button
+          variant="outlined"
+          component="span"
+          startIcon={<CloudUploadIcon />}
+          className="upload-button"
+          disabled={isSubmitting}
+        >
+          Завантажити фото
+        </Button>
+      </label>
+      {photoPreview && (
+        <Avatar
+          src={photoPreview}
+          alt="Preview"
+          className="photo-preview"
+        />
+      )}
+    </Box>
+  );
 
   return (
     <div className="app-wrapper parallax-container">
-      {/* Фонове зображення з ефектом параллакса */}
-      <div className="parallax-background"></div>
-      <div className="parallax-overlay"></div>
+      <div className="parallax-background" />
+      <div className="parallax-overlay" />
       
       <Container maxWidth="sm" className="register-page-container">
         <Paper elevation={3} className="register-page-paper">
@@ -156,266 +195,115 @@ const RegisterPage = () => {
                   Особиста інформація
                 </Typography>
                 
-                <Box className="field-container">
-                  <Typography variant="caption" className="field-description">
-                    Введіть ваше прізвище
-                  </Typography>
-                  <TextField
-                    label="Прізвище"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    variant="outlined"
-                    className="form-field"
-                  />
-                </Box>
+                {renderField({
+                  name: 'lastName',
+                  label: 'Прізвище',
+                  description: 'Введіть ваше прізвище',
+                  required: true
+                })}
                 
-                <Box className="field-container">
-                  <Typography variant="caption" className="field-description">
-                    Введіть ваше ім'я
-                  </Typography>
-                  <TextField
-                    label="Ім'я"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    variant="outlined"
-                    className="form-field"
-                  />
-                </Box>
+                {renderField({
+                  name: 'firstName',
+                  label: "Ім'я",
+                  description: "Введіть ваше ім'я",
+                  required: true
+                })}
                 
-                <Box className="field-container">
-                  <Typography variant="caption" className="field-description">
-                    Введіть ваше по батькові (необов'язково)
-                  </Typography>
-                  <TextField
-                    label="По батькові"
-                    name="middleName"
-                    value={formData.middleName}
-                    onChange={handleChange}
-                    fullWidth
-                    variant="outlined"
-                    className="form-field"
-                  />
-                </Box>
+                {renderField({
+                  name: 'middleName',
+                  label: 'По батькові',
+                  description: "Введіть ваше по батькові (необов'язково)"
+                })}
                 
-                <Box className="field-container">
-                  <Typography variant="caption" className="field-description">
-                    Введіть ваш номер телефону
-                  </Typography>
-                  <TextField
-                    label="Номер телефону"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    variant="outlined"
-                    className="form-field"
-                  />
-                </Box>
+                {renderField({
+                  name: 'phone',
+                  label: 'Номер телефону',
+                  description: 'Введіть ваш номер телефону',
+                  required: true
+                })}
                 
-                <Box className="field-container">
-                  <Typography variant="caption" className="field-description">
-                    Введіть вашу електронну пошту
-                  </Typography>
-                  <TextField
-                    label="Електронна пошта"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    variant="outlined"
-                    className="form-field"
-                  />
-                </Box>
+                {renderField({
+                  name: 'email',
+                  label: 'Електронна пошта',
+                  description: 'Введіть вашу електронну пошту',
+                  type: 'email',
+                  required: true
+                })}
                 
-                <Box className="field-container">
-                  <Typography variant="caption" className="field-description">
-                    Введіть ваш Telegram ID (необов'язково)
-                  </Typography>
-                  <TextField
-                    label="Telegram ID"
-                    name="telegramId"
-                    value={formData.telegramId}
-                    onChange={handleChange}
-                    fullWidth
-                    variant="outlined"
-                    className="form-field"
-                  />
-                </Box>
+                {renderField({
+                  name: 'telegramId',
+                  label: 'Telegram ID',
+                  description: "Введіть ваш Telegram ID (необов'язково)"
+                })}
                 
-                <Box className="field-container">
-                  <Typography variant="caption" className="field-description">
-                    Введіть назву вашої організації
-                  </Typography>
-                  <TextField
-                    label="Організація"
-                    name="organization"
-                    value={formData.organization}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    variant="outlined"
-                    className="form-field"
-                  />
-                </Box>
-              </Box>
-              
-              <Box className="form-section">
-                <Typography variant="subtitle1" className="section-subtitle">
-                  Фото профілю (необов'язкове)
-                </Typography>
-                <Box className="photo-upload-container">
-                  {photoPreview ? (
-                    <Avatar 
-                      src={photoPreview} 
-                      alt="Фото профілю" 
-                      className="profile-photo-preview"
-                    />
-                  ) : (
-                    <Avatar className="profile-photo-placeholder">
-                      <CloudUploadIcon />
-                    </Avatar>
-                  )}
-                  <input
-                    accept="image/*"
-                    className="photo-input"
-                    id="photo-upload"
-                    type="file"
-                    onChange={handlePhotoChange}
-                  />
-                  <label htmlFor="photo-upload">
-                    <Button
-                      variant="outlined"
-                      component="span"
-                      className="upload-button"
-                      startIcon={<CloudUploadIcon />}
-                    >
-                      Завантажити фото
-                    </Button>
-                  </label>
-                </Box>
-              </Box>
-              
-              <Box className="form-section">
-                <Typography variant="h6" className="section-title">
-                  Навички та опис
-                </Typography>
+                {renderField({
+                  name: 'skills',
+                  label: 'Навички',
+                  description: 'Опишіть ваші навички та досвід',
+                  required: true
+                })}
                 
-                <Box className="field-container">
-                  <Typography variant="caption" className="field-description">
-                    Перелічіть ваші навички через кому (логістика, медична допомога, тощо)
-                  </Typography>
-                  <TextField
-                    label="Навички"
-                    name="skills"
-                    value={formData.skills}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    variant="outlined"
-                    className="form-field"
-                  />
-                </Box>
+                {renderField({
+                  name: 'description',
+                  label: 'Про себе',
+                  description: 'Розкажіть про себе'
+                })}
                 
-                <Box className="field-container">
-                  <Typography variant="caption" className="field-description">
-                    Опишіть ваш досвід, мотивацію та можливості як волонтера
-                  </Typography>
-                  <TextField
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    variant="outlined"
-                    multiline
-                    rows={4}
-                    placeholder="Опишіть ваш досвід, мотивацію та можливості як волонтера..."
-                    className="form-field"
-                  />
-                </Box>
-              </Box>
-              
-              <Box className="form-section">
-                <Typography variant="h6" className="section-title">
-                  Дані для входу
-                </Typography>
+                {renderField({
+                  name: 'organization',
+                  label: 'Організація',
+                  description: 'Вкажіть вашу організацію'
+                })}
                 
-                <Box className="field-container">
-                  <Typography variant="caption" className="field-description">
-                    Створіть надійний пароль
-                  </Typography>
-                  <TextField
-                    label="Пароль"
-                    name="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    variant="outlined"
-                    className="form-field"
-                  />
-                </Box>
+                {renderField({
+                  name: 'password',
+                  label: 'Пароль',
+                  description: 'Придумайте надійний пароль',
+                  type: 'password',
+                  required: true
+                })}
                 
-                <Box className="field-container">
-                  <Typography variant="caption" className="field-description">
-                    Підтвердіть ваш пароль
-                  </Typography>
-                  <TextField
-                    label="Підтвердження пароля"
-                    name="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    fullWidth
-                    required
-                    variant="outlined"
-                    className="form-field"
-                  />
-                </Box>
-              </Box>
-            </Box>
+                {renderField({
+                  name: 'confirmPassword',
+                  label: 'Підтвердження пароля',
+                  description: 'Повторіть пароль',
+                  type: 'password',
+                  required: true
+                })}
 
-            <Box className="register-page-actions">
-              <Button 
-                onClick={handleCancel} 
-                className="cancel-button"
-              >
-                Скасувати
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                className="submit-button"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Реєстрація...' : 'Зареєструватися'}
-              </Button>
+                {renderPhotoUpload()}
+              </Box>
+
+              {error && (
+                <Alert severity="error" className="error-alert">
+                  {error}
+                </Alert>
+              )}
+
+              <Box className="form-actions">
+                <Button
+                  type="button"
+                  variant="outlined"
+                  onClick={() => navigate('/')}
+                  className="cancel-button"
+                  disabled={isSubmitting}
+                >
+                  Скасувати
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  className="submit-button"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Реєстрація...' : 'Зареєструватися'}
+                </Button>
+              </Box>
             </Box>
           </form>
         </Paper>
       </Container>
-      
-      <Snackbar 
-        open={!!error} 
-        autoHideDuration={6000} 
-        onClose={() => setError(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
     </div>
   );
 };

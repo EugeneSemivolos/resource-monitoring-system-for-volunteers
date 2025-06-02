@@ -1,3 +1,19 @@
+/* Variables */
+:root {
+  --dialog-padding: 24px;
+  --input-spacing: 16px;
+  --primary-color: #1976d2;
+  --error-color: #d32f2f;
+  --hover-opacity: 0.8;
+  --transition-duration: 0.3s;
+}
+
+/* Dialog Styles */
+.login-dialog .MuiDialog-paper {
+  padding: var(--dialog-padding);
+  min-width: 320px;
+}
+
 .login-dialog .MuiPaper-root {
   border-radius: 12px;
   overflow: hidden;
@@ -15,63 +31,90 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid #eee;
+  margin-bottom: var(--input-spacing);
 }
 
 .custom-dialog-title h5 {
   font-weight: 500;
 }
 
+/* Form Content */
 .login-content {
-  padding-top: 20px;
-  padding-bottom: 10px;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 .login-input {
-  margin-bottom: 15px;
+  margin-bottom: var(--input-spacing) !important;
 }
 
-.close-button {
-  padding: 6px;
+.login-input .MuiOutlinedInput-root {
+  transition: all var(--transition-duration);
 }
 
-.forgot-password-link {
-  text-align: right;
-  margin-top: 5px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: color 0.3s;
+.login-input .MuiOutlinedInput-root:hover {
+  background-color: rgba(0, 0, 0, 0.01);
 }
 
-.forgot-password-link:hover {
-  text-decoration: underline;
-}
-
+/* Action Buttons */
 .login-actions {
   flex-direction: column;
-  padding: 16px 24px 24px;
+  padding: var(--dialog-padding) !important;
+  gap: var(--input-spacing);
 }
 
 .login-button {
-  margin-bottom: 15px;
-  padding: 10px;
-  font-weight: 600;
+  height: 42px;
+  font-weight: 600 !important;
+  text-transform: none !important;
+}
+
+/* Links */
+.forgot-password-link {
+  margin-top: 4px !important;
+  cursor: pointer;
+  transition: opacity var(--transition-duration);
+}
+
+.forgot-password-link:hover {
+  opacity: var(--hover-opacity);
 }
 
 .create-account-text {
   text-align: center;
-  color: #666;
+  color: rgba(0, 0, 0, 0.6);
 }
 
 .create-account-link {
-  color: #1976d2;
-  margin-left: 5px;
+  color: var(--primary-color);
+  margin-left: 8px;
   cursor: pointer;
-  font-weight: 500;
-  transition: color 0.3s;
+  transition: opacity var(--transition-duration);
 }
 
 .create-account-link:hover {
-  text-decoration: underline;
+  opacity: var(--hover-opacity);
+}
+
+/* Error States */
+.login-input.Mui-error .MuiOutlinedInput-notchedOutline {
+  border-color: var(--error-color);
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .login-dialog .MuiDialog-paper {
+    margin: 16px;
+    padding: 16px;
+  }
+  
+  .login-actions {
+    padding: 16px !important;
+  }
+}
+
+.close-button {
+  position: absolute;
+  right: 8px;
+  top: 8px;
 } 

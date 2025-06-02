@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { volunteerService } from '../services/api';
 
 // Створення контексту
@@ -9,76 +9,77 @@ export const useUser = () => useContext(UserContext);
 
 // Компонент UserProvider для обгортання застосунку
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [shouldRefreshVolunteers, setShouldRefreshVolunteers] = useState(false);
+  const [state, setState] = useState({
+    user: null,
+    loading: true,
+    shouldRefreshVolunteers: false
+  });
 
-  // перевірка при монтуванні компонента, чи користувач вже ввійшов
+  const updateState = (updates) => {
+    setState(prev => ({ ...prev, ...updates }));
+  };
+
+  // Перевірка авторизації при завантаженні
   useEffect(() => {
     const checkLoggedInUser = async () => {
       try {
         const currentUser = volunteerService.getCurrentUser();
-        if (currentUser && currentUser.id) {
-          // Отримуємо актуальні дані з сервера
+        if (currentUser?.id) {
           const userData = await volunteerService.getVolunteerById(currentUser.id);
-          setUser(userData);
+          updateState({ user: userData });
         }
       } catch (error) {
         console.error('Помилка при отриманні даних користувача:', error);
       } finally {
-        setLoading(false);
+        updateState({ loading: false });
       }
     };
 
     checkLoggedInUser();
   }, []);
 
-  // функція входу
-  const login = async (credentials) => {
+  // Функції для роботи з користувачем
+  const login = useCallback(async (credentials) => {
     try {
       const response = await volunteerService.loginVolunteer(credentials);
       if (response.volunteer) {
-        // Отримуємо повні дані волонтера після успішного входу
         const userData = await volunteerService.getVolunteerById(response.volunteer.id);
-        setUser(userData);
+        updateState({ user: userData });
       }
       return response;
     } catch (error) {
       throw error;
     }
-  };
+  }, []);
 
-  // функція виходу
-  const logout = () => {
-    // Очищаємо дані користувача в сервісі
+  const logout = useCallback(() => {
     volunteerService.logoutVolunteer();
-    // Очищаємо стан користувача в контексті
-    setUser(null);
-  };
+    updateState({ user: null });
+  }, []);
 
-  // оновлення даних користувача
-  const updateUser = (userData) => {
-    setUser(userData);
-    // Оновлюємо дані в локальному сховищі
+  const updateUser = useCallback((userData) => {
+    updateState({ user: userData });
     localStorage.setItem('currentUser', JSON.stringify(userData));
-    // Встановлюємо флаг для оновлення списку волонтерів
-    setShouldRefreshVolunteers(true);
-  };
+    updateState({ shouldRefreshVolunteers: true });
+  }, []);
 
-  // значення контексту
-  const value = {
-    user,
-    loading,
+  const setShouldRefreshVolunteers = useCallback((value) => {
+    updateState({ shouldRefreshVolunteers: value });
+  }, []);
+
+  const contextValue = {
+    user: state.user,
+    loading: state.loading,
     login,
     logout,
     updateUser,
-    shouldRefreshVolunteers,
+    shouldRefreshVolunteers: state.shouldRefreshVolunteers,
     setShouldRefreshVolunteers,
-    isAuthenticated: !!user
+    isAuthenticated: !!state.user
   };
 
   return (
-    <UserContext.Provider value={value}>
+    <UserContext.Provider value={contextValue}>
       {children}
     </UserContext.Provider>
   );

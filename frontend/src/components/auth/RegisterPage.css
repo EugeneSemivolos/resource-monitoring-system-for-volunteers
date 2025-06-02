@@ -1,127 +1,172 @@
+/* Variables */
+:root {
+  --form-spacing: 24px;
+  --section-spacing: 32px;
+  --field-spacing: 16px;
+  --border-radius: 12px;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --overlay-color: rgba(0, 0, 0, 0.4);
+  --transition-duration: 0.3s;
+}
+
+/* Container Styles */
 .register-page-container {
-  margin-top: 20px;
-  margin-bottom: 50px;
+  padding: var(--form-spacing);
+  margin-top: var(--section-spacing);
+  margin-bottom: var(--section-spacing);
   position: relative;
   z-index: 1;
 }
 
 .register-page-paper {
-  padding: 30px;
-  border-radius: 12px;
+  padding: var(--form-spacing);
+  border-radius: var(--border-radius);
   background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 20px var(--shadow-color);
 }
 
-.register-page-title {
-  margin-bottom: 30px;
-  color: #1976d2;
-  font-weight: 600;
-}
-
+/* Form Layout */
 .register-page-content {
-  padding: 0 15px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-spacing);
 }
 
 .form-section {
-  margin-bottom: 30px;
-}
-
-.section-title {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  color: #1976d2;
-  font-weight: 500;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 8px;
-}
-
-.section-subtitle {
-  margin-bottom: 15px;
-  color: #555;
-  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-spacing);
 }
 
 .field-container {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Typography */
+.register-page-title {
+  margin-bottom: var(--section-spacing) !important;
+  font-weight: 600 !important;
+}
+
+.section-title {
+  color: #1976d2;
+  font-weight: 600 !important;
+  margin-bottom: var(--field-spacing) !important;
 }
 
 .field-description {
-  display: block;
-  margin-bottom: 5px;
-  color: #666;
-  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+  margin-bottom: 4px;
 }
 
-.form-field {
-  margin-bottom: 5px;
+/* Form Fields */
+.form-field .MuiOutlinedInput-root {
+  background-color: rgba(255, 255, 255, 0.8);
+  transition: background-color var(--transition-duration);
 }
 
-.photo-upload-section {
-  display: flex;
-  flex-direction: column;
-  margin-top: 10px;
-  margin-bottom: 20px;
+.form-field .MuiOutlinedInput-root:hover {
+  background-color: rgba(255, 255, 255, 0.9);
 }
 
+.form-field .MuiOutlinedInput-root.Mui-focused {
+  background-color: #fff;
+}
+
+/* Photo Upload */
 .photo-upload-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
-  padding: 15px;
-  border: 1px dashed #ccc;
-  border-radius: 8px;
-  background-color: rgba(249, 249, 249, 0.8);
+  gap: var(--field-spacing);
+  padding: var(--field-spacing);
+  border: 2px dashed rgba(25, 118, 210, 0.2);
+  border-radius: var(--border-radius);
+  transition: border-color var(--transition-duration);
 }
 
-.profile-photo-preview,
-.profile-photo-placeholder {
-  width: 100px !important;
-  height: 100px !important;
+.photo-upload-container:hover {
+  border-color: rgba(25, 118, 210, 0.4);
 }
 
-.profile-photo-placeholder {
-  background-color: #e0e0e0;
-}
-
-.photo-input {
-  display: none;
+.photo-preview {
+  width: 120px !important;
+  height: 120px !important;
+  margin-top: var(--field-spacing);
 }
 
 .upload-button {
-  margin-top: 10px;
+  text-transform: none !important;
 }
 
-.register-page-actions {
+/* Form Actions */
+.form-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 30px;
-  padding: 0 15px 15px;
+  gap: var(--field-spacing);
+  margin-top: var(--section-spacing);
 }
 
-.cancel-button {
-  color: #666;
-}
-
+.cancel-button,
 .submit-button {
-  padding-left: 24px;
-  padding-right: 24px;
+  flex: 1;
+  height: 42px;
+  text-transform: none !important;
+  font-weight: 600 !important;
 }
 
-/* Responsive adjustments */
+/* Error Alert */
+.error-alert {
+  margin-bottom: var(--field-spacing);
+}
+
+/* Parallax Background */
+.parallax-background {
+  position: fixed;
+  top: -40%;
+  width: 100%;
+  height: 150%;
+  background-image: url('../../images/volunteers.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  z-index: -1;
+  opacity: 0.15;
+  transition: none;
+  will-change: transform;
+}
+
+.parallax-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--overlay-color);
+  z-index: -1;
+}
+
+/* Responsive Design */
 @media (max-width: 600px) {
   .register-page-container {
-    margin-top: 70px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 16px;
+    margin-top: 16px;
+    margin-bottom: 16px;
   }
-  
+
   .register-page-paper {
-    padding: 20px 15px;
+    padding: 16px;
   }
-  
-  .register-page-content {
-    padding: 0;
+
+  .form-actions {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 1200px) {
+  .parallax-background {
+    left: -15%;
+    width: 130%;
   }
 } 
