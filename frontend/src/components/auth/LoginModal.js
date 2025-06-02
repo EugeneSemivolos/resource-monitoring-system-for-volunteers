@@ -118,85 +118,85 @@ const LoginModal = ({ open, onClose }) => {
   );
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose}
-      maxWidth="xs"
-      fullWidth
-      className="login-dialog"
-    >
-      <Box className="custom-dialog-title">
-        <Typography variant="h5" component="div">
-          Вхід до системи
-        </Typography>
-        <IconButton 
-          aria-label="close" 
-          onClick={onClose}
-          className="close-button"
-        >
-          <CloseIcon />
-        </IconButton>
-      </Box>
-      
-      <form onSubmit={handleSubmit}>
-        <DialogContent className="login-content">
+      <Dialog 
+        open={open} 
+        onClose={onClose}
+        maxWidth="xs"
+        fullWidth
+        className="login-dialog"
+      >
+        <Box className="custom-dialog-title">
+          <Typography variant="h5" component="div">
+            Вхід до системи
+          </Typography>
+          <IconButton 
+            aria-label="close" 
+            onClick={onClose}
+            className="close-button"
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        
+        <form onSubmit={handleSubmit}>
+          <DialogContent className="login-content">
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
 
-          <TextField
-            margin="dense"
-            label="Електронна пошта"
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            fullWidth
-            required
-            variant="outlined"
-            className="login-input"
-            disabled={isLoading}
+            <TextField
+              margin="dense"
+              label="Електронна пошта"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              fullWidth
+              required
+              variant="outlined"
+              className="login-input"
+              disabled={isLoading}
             error={!!error}
           />
           
           {renderPasswordField()}
-          
-          <Typography 
-            variant="body2" 
-            color="primary" 
-            className="forgot-password-link"
+            
+            <Typography 
+              variant="body2" 
+              color="primary" 
+              className="forgot-password-link"
             onClick={() => {}} // TODO: Implement forgot password functionality
-          >
-            Забули пароль?
-          </Typography>
-        </DialogContent>
-        
-        <DialogActions className="login-actions">
-          <Button 
-            type="submit" 
-            variant="contained" 
-            color="primary" 
-            fullWidth
-            className="login-button"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Перевірка...' : 'Увійти'}
-          </Button>
-          
-          <Typography variant="body2" className="create-account-text">
-            Новий волонтер? 
-            <span 
-              className="create-account-link" 
-              onClick={handleCreateAccount}
             >
-              Створити акаунт
-            </span>
-          </Typography>
-        </DialogActions>
-      </form>
-    </Dialog>
+              Забули пароль?
+            </Typography>
+          </DialogContent>
+          
+          <DialogActions className="login-actions">
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary" 
+              fullWidth
+              className="login-button"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Перевірка...' : 'Увійти'}
+            </Button>
+            
+            <Typography variant="body2" className="create-account-text">
+              Новий волонтер? 
+              <span 
+                className="create-account-link" 
+                onClick={handleCreateAccount}
+              >
+                Створити акаунт
+              </span>
+            </Typography>
+          </DialogActions>
+        </form>
+      </Dialog>
   );
 };
 

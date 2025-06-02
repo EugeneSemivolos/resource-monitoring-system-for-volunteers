@@ -1,85 +1,87 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { Card, CardContent, Typography, Box, Divider } from '@mui/material';
 import './CarouselCard.css';
 
-const CarouselCard = ({ icon, name, description }) => {
-  // Визначаємо клас кольору в залежності від назви карточки
-  const getCardColorClass = () => {
-    if (name.includes('Моніторинг')) return 'card-green';
-    if (name.includes('База')) return 'card-blue';
-    if (name.includes('Куратори')) return 'card-purple';
-    return '';
-  };
+const CARD_TYPES = {
+  MONITORING: 'Моніторинг',
+  DATABASE: 'База',
+  CURATORS: 'Куратори'
+};
 
-  const colorClass = getCardColorClass();
-  
-  const isCurators = name.includes('Куратори');
+const CARD_COLORS = {
+  [CARD_TYPES.MONITORING]: 'card-green',
+  [CARD_TYPES.DATABASE]: 'card-blue',
+  [CARD_TYPES.CURATORS]: 'card-purple'
+};
+
+const CarouselCard = ({ icon, name, description }) => {
+  const cardType = useMemo(() => 
+    Object.keys(CARD_TYPES).find(key => name.includes(CARD_TYPES[key])),
+    [name]
+  );
+
+  const colorClass = CARD_COLORS[CARD_TYPES[cardType]] || '';
+  const isCurators = cardType === 'CURATORS';
+
+  const renderHeader = () => (
+    <Box className="card-header">
+      <Box className="icon-container">
+        {React.cloneElement(icon, { className: `card-icon ${colorClass}-icon` })}
+      </Box>
+      <Typography 
+        variant="h5" 
+        component="div" 
+        className="card-title"
+      >
+        {name}
+      </Typography>
+    </Box>
+  );
+
+  const renderDescription = () => (
+    <Typography 
+      variant="body1" 
+      className={`card-content ${isCurators ? 'curator-content' : ''}`}
+    >
+      {description.title}
+    </Typography>
+  );
+
+  const renderItems = () => (
+    <ul className="card-list">
+      {description.items.map((item, index) => (
+        <Typography 
+          key={index} 
+          component="li" 
+          variant="body1" 
+          className={`list-item ${isCurators ? 'curator-item' : ''} ${colorClass}-marker`}
+        >
+          {item}
+        </Typography>
+      ))}
+    </ul>
+  );
 
   return (
     <Card className={`carousel-item-card ${colorClass}`} elevation={3}>
-      <CardContent sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        height: '100%',
-        overflowY: 'auto'
-      }}>
-        <Box className="card-header">
-          <Box className="icon-container">
-            {React.cloneElement(icon, { className: `card-icon ${colorClass}-icon` })}
-          </Box>
-          <Typography 
-            variant="h5" 
-            component="div" 
-            sx={{ 
-              fontWeight: 600, 
-              fontSize: '1.8rem',
-              ml: 2
-            }}
-          >
-            {name}
-          </Typography>
-        </Box>
-        
-        <Divider sx={{ my: 2, borderColor: 'rgba(0, 0, 0, 0.08)' }} />
-        
-        <Typography 
-          variant="body1" 
-          className="card-content"
-          sx={{ 
-            fontSize: isCurators ? '1.2rem' : '1.3rem',
-            fontWeight: 500,
-            mb: 1.5
-          }}
-        >
-          {description.title}
-        </Typography>
-        
-        <ul className="card-list">
-          {description.items.map((item, index) => (
-            <Typography 
-              key={index} 
-              component="li" 
-              variant="body1" 
-              className={`list-item`}
-              sx={{ 
-                fontSize: isCurators ? '1rem' : '1.15rem',
-                mb: isCurators ? 1 : 1.5,
-                lineHeight: isCurators ? 1.4 : 1.5,
-                color: '#333',
-                '&::marker': {
-                  color: colorClass === 'card-green' ? '#2e7d32' : 
-                          colorClass === 'card-blue' ? '#1976d2' : 
-                          colorClass === 'card-purple' ? '#9c27b0' : '#1976d2'
-                }
-              }}
-            >
-              {item}
-            </Typography>
-          ))}
-        </ul>
+      <CardContent className="card-content-wrapper">
+        {renderHeader()}
+        <Divider className="card-divider" />
+        {renderDescription()}
+        {renderItems()}
       </CardContent>
     </Card>
   );
 };
 
-export default CarouselCard; 
+CarouselCard.propTypes = {
+  icon: PropTypes.element.isRequired,
+  name: PropTypes.string.isRequired,
+  description: PropTypes.shape({
+    title: PropTypes.string.isRequired,
+    items: PropTypes.arrayOf(PropTypes.string).isRequired
+  }).isRequired
+};
+
+export default memo(CarouselCard); 

@@ -120,7 +120,7 @@ class VolunteerViewSet(ActionLoggingMixin, viewsets.ModelViewSet):
         if self.action in ['create', 'login', 'list', 'retrieve']:
             return []
         return [IsAuthenticated()]
-
+    
     def perform_create(self, serializer):
         instance = serializer.save()
         self.log_action(
@@ -179,7 +179,7 @@ class VolunteerViewSet(ActionLoggingMixin, viewsets.ModelViewSet):
                 {"message": "Користувач з такою електронною поштою вже існує"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
+        
         try:
             with transaction.atomic():
                 # Створюємо користувача Django
@@ -208,7 +208,7 @@ class VolunteerViewSet(ActionLoggingMixin, viewsets.ModelViewSet):
                 {"message": f"Помилка при реєстрації: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
+    
     @action(detail=False, methods=['post'], url_path='login')
     def login(self, request):
         email = request.data.get('email')
@@ -219,7 +219,7 @@ class VolunteerViewSet(ActionLoggingMixin, viewsets.ModelViewSet):
                 {"message": "Необхідно вказати email та пароль"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
+        
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
@@ -227,13 +227,13 @@ class VolunteerViewSet(ActionLoggingMixin, viewsets.ModelViewSet):
                 {"message": "Користувача з такою електронною поштою не знайдено"},
                 status=status.HTTP_404_NOT_FOUND
             )
-
+        
         if not user.check_password(password):
             return Response(
                 {"message": "Введено неправильний логін або пароль"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-
+        
         try:
             volunteer = Volunteer.objects.get(user=user)
         except Volunteer.DoesNotExist:
@@ -241,20 +241,20 @@ class VolunteerViewSet(ActionLoggingMixin, viewsets.ModelViewSet):
                 {"message": "Обліковий запис волонтера не знайдено"},
                 status=status.HTTP_404_NOT_FOUND
             )
-
+        
         if volunteer.status != 'active':
             return Response(
                 {"message": "Адміністратор ще не підтвердив вас"},
                 status=status.HTTP_403_FORBIDDEN
             )
-
+        
         # Оновлюємо час останнього входу
         volunteer.last_login = timezone.now()
         volunteer.save()
-
+        
         # Отримуємо або створюємо токен
         token, _ = Token.objects.get_or_create(user=user)
-
+        
         return Response({
             "message": "Вхід успішний",
             "token": token.key,
@@ -307,6 +307,6 @@ def action_log_list(request):
             'description': log.description,
             'performer': log.performer
         } for log in logs]
-    }
+        }
     
     return Response(data)

@@ -14,6 +14,7 @@ import './MainPage.css';
 // Дані для карток у каруселі
 const CARDS_DATA = [
   {
+    id: 'resources',
     icon: <InventoryIcon className="card-icon resource-icon" />,
     name: "Моніторинг ресурсів",
     description: {
@@ -26,6 +27,7 @@ const CARDS_DATA = [
     }
   },
   {
+    id: 'volunteers',
     icon: <PeopleIcon className="card-icon volunteer-icon" />,
     name: "База волонтерів",
     description: {
@@ -38,6 +40,7 @@ const CARDS_DATA = [
     }
   },
   {
+    id: 'curators',
     icon: <SupervisorAccountIcon className="card-icon curator-icon" />,
     name: "Куратори проекту",
     description: {
@@ -66,46 +69,58 @@ const CAROUSEL_SETTINGS = {
 };
 
 const MainPage = ({ setNavValue }) => {
-  return (
-    <Container maxWidth="lg">
-      <WelcomeSection setNavValue={setNavValue} />
-
-      {/* Розділ про нашу задачу */}
+  const renderMissionSection = () => (
       <Box className="content-box">
         <Typography variant="h4" gutterBottom className="section-title">
           Наша задача
         </Typography>
         
         <p className="section-text">
-          Система моніторингу ресурсів для волонтерів допомагає ефективно координувати волонтерську діяльність, забезпечуючи швидке реагування на потреби громади та оптимальне використання наявних ресурсів.
+        Система моніторингу ресурсів для волонтерів допомагає ефективно координувати 
+        волонтерську діяльність, забезпечуючи швидке реагування на потреби громади 
+        та оптимальне використання наявних ресурсів.
         </p>
         
         <p className="section-text">
-          Волонтерство відіграє критичну роль у сучасному суспільстві, особливо в часи кризи. Громадянське суспільство активізується там, де державні механізми не можуть забезпечити всі потреби громадян, особливо найбільш вразливих груп населення.
+        Волонтерство відіграє критичну роль у сучасному суспільстві, особливо в часи кризи. 
+        Громадянське суспільство активізується там, де державні механізми не можуть забезпечити 
+        всі потреби громадян, особливо найбільш вразливих груп населення.
         </p>
       </Box>
+  );
 
-      {/* Розділ з каруселлю */}
+  const renderCarouselSection = () => (
       <div className="carousel-container">
         <Typography variant="h4" component="h2" className="section-title">
           Чим можемо бути корисним?
         </Typography>
         
         <Carousel className="card-carousel" {...CAROUSEL_SETTINGS}>
-          {CARDS_DATA.map((card, index) => (
+        {CARDS_DATA.map(({ id, icon, name, description }) => (
             <CarouselCard 
-              key={index}
-              icon={card.icon}
-              name={card.name}
-              description={card.description}
+            key={id}
+            icon={icon}
+            name={name}
+            description={description}
             />
           ))}
         </Carousel>
       </div>
+  );
 
+  return (
+    <Container maxWidth={false} className="main-page-container">
+      <div className="welcome-section">
+        <WelcomeSection setNavValue={setNavValue} />
+      </div>
+      {renderMissionSection()}
+      {renderCarouselSection()}
+      <div className="mission-section">
       <Mission />
-      
+      </div>
+      <div className="join-us-section">
       <JoinUsSection />
+      </div>
     </Container>
   );
 };

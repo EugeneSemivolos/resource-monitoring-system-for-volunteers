@@ -397,6 +397,19 @@ const resourceService = {
       }
       throw error;
     }
+  },
+
+  // Отримати ресурс за ID
+  getResourceById: async (id) => {
+    try {
+      const response = await api.get(`/resources/${id}/`);
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
   }
 };
 

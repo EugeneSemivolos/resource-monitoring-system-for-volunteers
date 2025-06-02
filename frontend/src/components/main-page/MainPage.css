@@ -1,5 +1,10 @@
 /* Блоки вмісту */
-.content-box {
+.main-page-container {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.content-box {  
   margin-top: 2rem;
   margin-bottom: 2.5rem;
   padding: 2rem;

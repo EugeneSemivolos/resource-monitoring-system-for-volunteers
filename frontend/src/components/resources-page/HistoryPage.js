@@ -1,166 +1,225 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { Container, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Select, MenuItem, TextField, Button } from '@mui/material';
 import './HistoryPage.css';
+
+const PAGE_SIZE = 10;
 
 const SUBJECT_OPTIONS = [
   { value: '', label: 'Всі обʼєкти' },
   { value: 'resource', label: 'Ресурс' },
-  { value: 'volunteer', label: 'Волонтер' },
+  { value: 'volunteer', label: 'Волонтер' }
 ];
+
 const ACTION_OPTIONS = [
   { value: '', label: 'Всі дії' },
   { value: 'added', label: 'Додано' },
   { value: 'updated', label: 'Змінено' },
-  { value: 'deleted', label: 'Видалено' },
+  { value: 'deleted', label: 'Видалено' }
 ];
-const PAGE_SIZE = 10;
 
-const translateSubject = (subject) => {
-  switch (subject) {
-    case 'resource':
-      return 'Ресурс';
-    case 'volunteer':
-      return 'Волонтер';
-    default:
-      return subject;
+const TRANSLATIONS = {
+  subjects: {
+    resource: 'Ресурс',
+    volunteer: 'Волонтер'
+  },
+  actions: {
+    added: 'Додано',
+    updated: 'Змінено',
+    deleted: 'Видалено'
   }
 };
 
-const translateAction = (action) => {
-  switch (action) {
-    case 'added':
-      return 'Додано';
-    case 'updated':
-      return 'Змінено';
-    case 'deleted':
-      return 'Видалено';
-    default:
-      return action;
-  }
+const MENU_PROPS = {
+  PaperProps: {
+    style: { maxHeight: 300 }
+  },
+  disableScrollLock: true,
+  MenuListProps: {
+    style: {
+      paddingTop: 0,
+      paddingBottom: 0
+    }
+  },
+  container: document.body
 };
 
-const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }) => {
+const HistoryPage = () => {
   const [logs, setLogs] = useState([]);
-  const [subject, setSubject] = useState('');
-  const [action, setAction] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [filters, setFilters] = useState({
+    subject: '',
+    action: '',
+    dateFrom: '',
+    dateTo: ''
+  });
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
 
-  const fetchLogs = async (reset = false, customOffset = 0) => {
+  const buildUrl = useCallback((customOffset = 0) => {
+    const params = new URLSearchParams({
+      offset: customOffset,
+      page_size: PAGE_SIZE
+    });
+
+    if (filters.subject) params.append('subject', filters.subject);
+    if (filters.action) params.append('action', filters.action);
+    if (filters.dateFrom) params.append('date_from', filters.dateFrom);
+    if (filters.dateTo) params.append('date_to', filters.dateTo);
+
+    return `/api/history/?${params.toString()}`;
+  }, [filters]);
+
+  const fetchLogs = useCallback(async (reset = false, customOffset = 0) => {
     setLoading(true);
-    let url = `/api/history/?offset=${customOffset}&page_size=${PAGE_SIZE}`;
-    if (subject) url += `&subject=${subject}`;
-    if (action) url += `&action=${action}`;
-    if (dateFrom) url += `&date_from=${dateFrom}`;
-    if (dateTo) url += `&date_to=${dateTo}`;
     try {
-      const res = await fetch(url);
-      const data = await res.json();
+      const res = await fetch(buildUrl(customOffset));
+    const data = await res.json();
       
       if (!res.ok) {
         throw new Error(data.message || 'Помилка при завантаженні даних');
       }
       
-      setTotal(data.total);
-      if (reset) {
-        setLogs(data.results);
-        setOffset(PAGE_SIZE);
-      } else {
-        setLogs(prev => [...prev, ...data.results]);
-        setOffset(prev => prev + PAGE_SIZE);
-      }
+    setTotal(data.total);
+    if (reset) {
+      setLogs(data.results);
+      setOffset(PAGE_SIZE);
+    } else {
+      setLogs(prev => [...prev, ...data.results]);
+      setOffset(prev => prev + PAGE_SIZE);
+    }
     } catch (error) {
       console.error('Error fetching logs:', error);
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
-  };
+  }, [buildUrl]);
 
   useEffect(() => {
     fetchLogs(true, 0);
-    // eslint-disable-next-line
+  }, [fetchLogs]);
+
+  const handleFilterChange = useCallback((field, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: value
+    }));
   }, []);
 
-  const handleFilter = (e) => {
+  const handleFilter = useCallback((e) => {
     e.preventDefault();
     fetchLogs(true, 0);
-  };
+  }, [fetchLogs]);
 
-  const handleShowMore = () => {
-    fetchLogs(false, offset);
-  };
+  const renderFilters = () => (
+    <Box
+      component="form"
+      onSubmit={handleFilter}
+      className="history-filters"
+    >
+      <Select 
+        value={filters.subject} 
+        onChange={e => handleFilterChange('subject', e.target.value)} 
+        displayEmpty 
+        className="filter-select"
+        MenuProps={MENU_PROPS}
+      >
+        {SUBJECT_OPTIONS.map(opt => (
+          <MenuItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </MenuItem>
+        ))}
+      </Select>
 
-  // Конфігурація для випадаючого меню, щоб запобігти зсуву сторінки
-  const menuProps = {
-    PaperProps: {
-      style: {
-        maxHeight: 300,
-      }
-    },
-    disableScrollLock: true,
-    MenuListProps: {
-      style: {
-        paddingTop: 0,
-        paddingBottom: 0
-      }
-    },
-    container: document.body
+      <Select 
+        value={filters.action} 
+        onChange={e => handleFilterChange('action', e.target.value)} 
+        displayEmpty 
+        className="filter-select"
+        MenuProps={MENU_PROPS}
+      >
+        {ACTION_OPTIONS.map(opt => (
+          <MenuItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </MenuItem>
+        ))}
+      </Select>
+
+      <TextField
+        type="date"
+        label="Від"
+        InputLabelProps={{ shrink: true }}
+        value={filters.dateFrom}
+        onChange={e => handleFilterChange('dateFrom', e.target.value)}
+        className="filter-date"
+      />
+
+      <TextField
+        type="date"
+        label="До"
+        InputLabelProps={{ shrink: true }}
+        value={filters.dateTo}
+        onChange={e => handleFilterChange('dateTo', e.target.value)}
+        className="filter-date"
+      />
+
+      <Button 
+        type="submit" 
+        variant="contained" 
+        color="primary" 
+        className="filter-button"
+      >
+        Фільтрувати
+      </Button>
+    </Box>
+  );
+
+  const renderTableContent = () => {
+    if (loading && logs.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={6}>Завантаження...</TableCell>
+        </TableRow>
+      );
+    }
+
+    if (logs.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={6}>Записів не знайдено</TableCell>
+        </TableRow>
+      );
+    }
+
+    return logs.map(log => (
+      <TableRow key={log.id}>
+        <TableCell>{log.id}</TableCell>
+        <TableCell>{TRANSLATIONS.subjects[log.subject] || log.subject}</TableCell>
+        <TableCell>{TRANSLATIONS.actions[log.action] || log.action}</TableCell>
+        <TableCell>{log.description}</TableCell>
+        <TableCell>{log.performer || 'Система'}</TableCell>
+        <TableCell>{new Date(log.timestamp).toLocaleString('uk-UA')}</TableCell>
+      </TableRow>
+    ));
   };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom sx={{ background: '#fff', borderRadius: 2, boxShadow: 1, p: 2 }}>Історія змін</Typography>
-      <Box
-        component="form"
-        onSubmit={handleFilter}
-        className="history-filters"
+      <Typography 
+        variant="h4" 
+        gutterBottom 
+        sx={{
+          background: '#fff',
+          borderRadius: 2,
+          boxShadow: 1,
+          p: 2 
+        }}
       >
-        <Select 
-          value={subject} 
-          onChange={e => setSubject(e.target.value)} 
-          displayEmpty 
-          className="filter-select"
-          MenuProps={menuProps}
-        >
-          {SUBJECT_OPTIONS.map(opt => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
-        </Select>
-        <Select 
-          value={action} 
-          onChange={e => setAction(e.target.value)} 
-          displayEmpty 
-          className="filter-select"
-          MenuProps={menuProps}
-        >
-          {ACTION_OPTIONS.map(opt => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
-        </Select>
-        <TextField
-          type="date"
-          label="Від"
-          InputLabelProps={{ shrink: true }}
-          value={dateFrom}
-          onChange={e => setDateFrom(e.target.value)}
-          className="filter-date"
-        />
-        <TextField
-          type="date"
-          label="До"
-          InputLabelProps={{ shrink: true }}
-          value={dateTo}
-          onChange={e => setDateTo(e.target.value)}
-          className="filter-date"
-        />
-        <Button 
-          type="submit" 
-          variant="contained" 
-          color="primary" 
-          className="filter-button"
-        >
-          Фільтрувати
-        </Button>
-      </Box>
+        Історія змін
+      </Typography>
+
+      {renderFilters()}
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -174,27 +233,15 @@ const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen 
             </TableRow>
           </TableHead>
           <TableBody>
-            {loading && logs.length === 0 ? (
-              <TableRow><TableCell colSpan={6}>Завантаження...</TableCell></TableRow>
-            ) : logs.length === 0 ? (
-              <TableRow><TableCell colSpan={6}>Записів не знайдено</TableCell></TableRow>
-            ) : logs.map((log, idx) => (
-              <TableRow key={log.id}>
-                <TableCell>{log.id}</TableCell>
-                <TableCell>{translateSubject(log.subject)}</TableCell>
-                <TableCell>{translateAction(log.action)}</TableCell>
-                <TableCell>{log.description}</TableCell>
-                <TableCell>{log.performer || 'Система'}</TableCell>
-                <TableCell>{new Date(log.timestamp).toLocaleString('uk-UA')}</TableCell>
-              </TableRow>
-            ))}
+            {renderTableContent()}
           </TableBody>
         </Table>
       </TableContainer>
+
       {logs.length < total && (
         <Box display="flex" justifyContent="center" mt={2}>
           <Button 
-            onClick={handleShowMore} 
+            onClick={() => fetchLogs(false, offset)} 
             disabled={loading} 
             variant="contained" 
             color="primary" 

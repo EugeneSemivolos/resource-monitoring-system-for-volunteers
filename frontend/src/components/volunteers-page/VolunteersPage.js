@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import {
   Container,
   Typography,
   CircularProgress,
   Button,
 } from '@mui/material';
-import PeopleIcon from '@mui/icons-material/People';
-import RefreshIcon from '@mui/icons-material/Refresh';
+import {
+  People as PeopleIcon,
+  Refresh as RefreshIcon
+} from '@mui/icons-material';
 import VolunteerSearchComponent from './volunteer-search/VolunteerSearchComponent';
 import VolunteerCard from './volunteer-card/VolunteerCard';
 import { volunteerService } from '../../services/api';
@@ -15,75 +18,81 @@ import { useUser } from '../../contexts/UserContext';
 import './VolunteersPage.css';
 
 const VolunteersPage = () => {
-  // Стан
-  const [searchTerm, setSearchTerm] = useState('');
-  const [volunteers, setVolunteers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [searchState, setSearchState] = useState({
+    term: '',
+    volunteers: [],
+    loading: true,
+    error: null
+  });
+
   const location = useLocation();
   const { shouldRefreshVolunteers, setShouldRefreshVolunteers } = useUser();
 
-  // Функція для отримання даних про волонтерів
-  const fetchVolunteers = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await volunteerService.getVolunteers();
-      const resultsArray = processApiResponse(data);
-      setVolunteers(resultsArray);
-    } catch (error) {
-      console.error('Помилка при завантаженні даних:', error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Отримання даних про волонтерів при завантаженні сторінки
-  useEffect(() => {
-    fetchVolunteers();
-  }, [fetchVolunteers]);
-
-  // Оновлення при зміні location state або глобального стану оновлення
-  useEffect(() => {
-    if (location.state?.refresh || shouldRefreshVolunteers) {
-      fetchVolunteers();
-      // Очищаємо стани після оновлення
-      window.history.replaceState({}, document.title);
-      setShouldRefreshVolunteers(false);
-    }
-  }, [location.state, shouldRefreshVolunteers, setShouldRefreshVolunteers, fetchVolunteers]);
-  
-  // Допоміжна функція для обробки відповіді API (обробка пагінації)
-  const processApiResponse = (data) => {
-    // Обробка пагінації
+  const processApiResponse = useCallback((data) => {
     const resultsArray = data.results ? data.results : data;
     
-    // Перевірка формату відповіді
     if (!Array.isArray(resultsArray)) {
       console.error('API response is not an array or paginated object:', data);
       throw new Error('Unexpected API response format');
     }
     
     return resultsArray;
-  };
+  }, []);
 
-  // Фільтрація волонтерів на основі пошукового запиту
-  const filteredVolunteers = volunteers.filter(volunteer => {
-    const fullName = `${volunteer.last_name || ''} ${volunteer.first_name || ''} ${volunteer.middle_name || ''}`.toLowerCase();
-    const skills = (volunteer.skills || '').toLowerCase();
-    const org = (volunteer.organization || '').toLowerCase();
-    const description = (volunteer.description || '').toLowerCase();
-    const searchTermLower = searchTerm.toLowerCase();
-    
-    return !searchTerm || 
-           fullName.includes(searchTermLower) || 
-           skills.includes(searchTermLower) || 
-           org.includes(searchTermLower) ||
-           description.includes(searchTermLower);
-  });
-  
-  // Функції відображення
+  const fetchVolunteers = useCallback(async () => {
+    try {
+      setSearchState(prev => ({ ...prev, loading: true, error: null }));
+      const data = await volunteerService.getVolunteers();
+      const resultsArray = processApiResponse(data);
+      setSearchState(prev => ({ 
+        ...prev, 
+        volunteers: resultsArray,
+        loading: false 
+      }));
+    } catch (error) {
+      console.error('Помилка при завантаженні даних:', error);
+      setSearchState(prev => ({ 
+        ...prev, 
+        error: error.message,
+        loading: false 
+      }));
+    }
+  }, [processApiResponse]);
+
+  useEffect(() => {
+    fetchVolunteers();
+  }, [fetchVolunteers]);
+
+  useEffect(() => {
+    if (location.state?.refresh || shouldRefreshVolunteers) {
+      fetchVolunteers();
+      window.history.replaceState({}, document.title);
+      setShouldRefreshVolunteers(false);
+    }
+  }, [location.state, shouldRefreshVolunteers, setShouldRefreshVolunteers, fetchVolunteers]);
+
+  const getFilteredVolunteers = useCallback(() => {
+    return searchState.volunteers.filter(volunteer => {
+      if (!searchState.term) return true;
+
+      const searchTermLower = searchState.term.toLowerCase();
+      const searchableFields = [
+        `${volunteer.last_name || ''} ${volunteer.first_name || ''} ${volunteer.middle_name || ''}`,
+        volunteer.skills || '',
+        volunteer.organization || '',
+        volunteer.description || ''
+      ];
+
+      return searchableFields.some(field => 
+        field.toLowerCase().includes(searchTermLower)
+      );
+    });
+  }, [searchState.volunteers, searchState.term]);
+
+  const handleSearchTermChange = useCallback((term) => {
+    setSearchState(prev => ({ ...prev, term }));
+  }, []);
+
   const renderHeader = () => (
     <div className="volunteers-header-container">
       <div className="volunteers-header-content">
@@ -95,17 +104,17 @@ const VolunteersPage = () => {
       </div>
     </div>
   );
-  
+
   const renderLoading = () => (
     <div className="volunteers-loading">
       <CircularProgress />
     </div>
   );
-  
+
   const renderError = () => (
     <div className="volunteers-error">
       <Typography color="error">
-        {error}
+        {searchState.error}
         <Button
           startIcon={<RefreshIcon />}
           onClick={fetchVolunteers}
@@ -117,7 +126,7 @@ const VolunteersPage = () => {
       </Typography>
     </div>
   );
-  
+
   const renderNoResults = () => (
     <div className="volunteers-no-results">
       <Typography variant="body1">Волонтерів не знайдено</Typography>
@@ -131,33 +140,49 @@ const VolunteersPage = () => {
       </Button>
     </div>
   );
-  
-  const renderVolunteersList = () => (
-    <div className="volunteers-grid">
-      {filteredVolunteers.map((volunteer) => (
-        <div className="volunteers-grid-item" key={volunteer.id}>
-          <VolunteerCard volunteer={volunteer} />
-        </div>
-      ))}
-    </div>
-  );
 
-  // Основний рендер
+  const renderVolunteersList = () => {
+    const filteredVolunteers = getFilteredVolunteers();
+    
+    if (filteredVolunteers.length === 0) {
+      return renderNoResults();
+    }
+
+    return (
+      <div className="volunteers-grid">
+        {filteredVolunteers.map((volunteer) => (
+          <div className="volunteers-grid-item" key={volunteer.id}>
+            <VolunteerCard volunteer={volunteer} />
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderContent = () => {
+    if (searchState.loading) {
+      return renderLoading();
+    }
+
+    if (searchState.error) {
+      return renderError();
+    }
+
+    return renderVolunteersList();
+  };
+
   return (
     <Container maxWidth="lg" className="volunteers-container">
       {renderHeader()}
 
       <div className="volunteers-controls">
         <VolunteerSearchComponent 
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
+          searchTerm={searchState.term}
+          setSearchTerm={handleSearchTermChange}
         />
       </div>
 
-      {loading ? renderLoading() :
-       error ? renderError() :
-       filteredVolunteers.length === 0 ? renderNoResults() :
-       renderVolunteersList()}
+      {renderContent()}
     </Container>
   );
 };

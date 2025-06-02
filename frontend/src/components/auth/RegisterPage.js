@@ -7,7 +7,6 @@ import {
   Typography,
   Box,
   Avatar,
-  Snackbar,
   Alert
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -16,18 +15,18 @@ import { volunteerService } from '../../services/api';
 import './RegisterPage.css';
 
 const INITIAL_FORM_STATE = {
-  lastName: '',
-  firstName: '',
-  middleName: '',
-  phone: '',
-  email: '',
-  telegramId: '',
-  skills: '',
-  description: '',
-  organization: '',
-  password: '',
-  confirmPassword: '',
-  photoUrl: null
+    lastName: '',
+    firstName: '',
+    middleName: '',
+    phone: '',
+    email: '',
+    telegramId: '',
+    skills: '',
+    description: '',
+    organization: '',
+    password: '',
+    confirmPassword: '',
+    photoUrl: null
 };
 
 const VALIDATION_RULES = {
@@ -281,24 +280,24 @@ const RegisterPage = () => {
               )}
 
               <Box className="form-actions">
-                <Button
+              <Button 
                   type="button"
                   variant="outlined"
                   onClick={() => navigate('/')}
-                  className="cancel-button"
+                className="cancel-button"
                   disabled={isSubmitting}
-                >
-                  Скасувати
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  className="submit-button"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Реєстрація...' : 'Зареєструватися'}
-                </Button>
+              >
+                Скасувати
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                className="submit-button"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Реєстрація...' : 'Зареєструватися'}
+              </Button>
               </Box>
             </Box>
           </form>

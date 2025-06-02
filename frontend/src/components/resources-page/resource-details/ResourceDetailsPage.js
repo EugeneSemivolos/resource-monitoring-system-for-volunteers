@@ -1,94 +1,150 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, CircularProgress, Typography, Box, Divider, Chip } from '@mui/material';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import CategoryIcon from '@mui/icons-material/Category';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { 
+  Container, 
+  CircularProgress, 
+  Typography, 
+  Box, 
+  Divider, 
+  Chip,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Alert
+} from '@mui/material';
+import {
+  LocationOn as LocationOnIcon,
+  Category as CategoryIcon,
+  ArrowBack as ArrowBackIcon
+} from '@mui/icons-material';
 import notFoundImage from '../../../images/not_found.png';
 import './ResourceDetailsPage.css';
 import { useUser } from '../../../contexts/UserContext';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import Alert from '@mui/material/Alert';
 import { resourceService } from '../../../services/api';
 
-const API_URL = 'http://localhost:8000/api/resources/';
+const STATUS_TRANSLATIONS = {
+  available: 'Доступний',
+  unavailable: 'Недоступний',
+  in_use: 'Використовується',
+  reserved: 'Зарезервовано',
+  pending: 'В очікуванні',
+  delivered: 'Доставлено',
+  expired: 'Прострочено'
+};
 
-const ResourceDetailsPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }) => {
+const ResourceDetailsPage = () => {
   const { id } = useParams();
-  const [resource, setResource] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [updateModalOpen, setUpdateModalOpen] = useState(false);
-  const [newQuantity, setNewQuantity] = useState('');
-  const [updateError, setUpdateError] = useState('');
-  const [updateSuccess, setUpdateSuccess] = useState('');
   const navigate = useNavigate();
   const { isAuthenticated } = useUser();
 
-  useEffect(() => {
-    const fetchResource = async () => {
+  const [resource, setResource] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [updateState, setUpdateState] = useState({
+    modalOpen: false,
+    quantity: '',
+    error: '',
+    success: ''
+  });
+
+  const fetchResource = useCallback(async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}${id}/`);
-        if (!response.ok) throw new Error('Resource not found');
-        const data = await response.json();
+      const data = await resourceService.getResourceById(id);
         setResource(data);
       } catch (err) {
         setError('Не вдалося завантажити дані про ресурс');
       } finally {
         setLoading(false);
       }
-    };
-    fetchResource();
   }, [id]);
 
-  const getImageUrl = (photoPath) => {
+  useEffect(() => {
+    fetchResource();
+  }, [fetchResource]);
+
+  const getImageUrl = useCallback((photoPath) => {
     if (!photoPath) return notFoundImage;
     if (typeof photoPath === 'string' && photoPath.startsWith('http')) return photoPath;
     if (typeof photoPath === 'object' && photoPath.url) return photoPath.url;
     return `http://localhost:8000${photoPath}`;
-  };
+  }, []);
 
-  // Функція для перекладу статусу ресурсу на українську
-  const translateStatus = (status) => {
-    if (!status) return '';
-    const map = {
-      'available': 'Доступний',
-      'unavailable': 'Недоступний',
-      'in_use': 'Використовується',
-      'reserved': 'Зарезервовано',
-      'pending': 'В очікуванні',
-      'delivered': 'Доставлено',
-      'expired': 'Прострочено',
-      // Додайте інші статуси за потреби
-    };
-    return map[status] || status;
-  };
+  const handleUpdateModalOpen = useCallback(() => {
+    setUpdateState(prev => ({
+      ...prev,
+      modalOpen: true,
+      quantity: Number(resource.quantity) % 1 === 0 
+        ? Number(resource.quantity) 
+        : Number(resource.quantity).toFixed(2),
+      error: '',
+      success: ''
+    }));
+  }, [resource]);
 
-  return (
-        <Container maxWidth="md" sx={{ mt: 4 }}>
-          {loading ? (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-              <CircularProgress />
-            </Box>
-          ) : error ? (
-            <Typography color="error" align="center">{error}</Typography>
-          ) : resource ? (
-            <Box className="resource-details-box" sx={{ background: 'rgba(255,255,255,0.95)', borderRadius: 2, p: 4, boxShadow: 2 }}>
+  const handleUpdateModalClose = useCallback(() => {
+    setUpdateState(prev => ({ ...prev, modalOpen: false }));
+  }, []);
+
+  const handleQuantityChange = useCallback((e) => {
+    setUpdateState(prev => ({ ...prev, quantity: e.target.value }));
+  }, []);
+
+  const handleQuantityUpdate = useCallback(async () => {
+    const val = Number(updateState.quantity);
+    
+    if (isNaN(val) || val < 0) {
+      setUpdateState(prev => ({
+        ...prev,
+        error: 'Вкажіть коректну кількість',
+        success: ''
+      }));
+      return;
+    }
+
+    try {
+      if (val === 0) {
+        await resourceService.deleteResource(resource.id);
+        setUpdateState(prev => ({ ...prev, success: 'Ресурс видалено!' }));
+        setTimeout(() => navigate('/resources', { 
+          state: { deletedResourceId: resource.id } 
+        }), 1000);
+      } else {
+        const updated = await resourceService.updateResource(resource.id, { quantity: val });
+        setUpdateState(prev => ({ ...prev, success: 'Кількість успішно оновлено!' }));
+        setResource(prev => ({ ...prev, quantity: updated.quantity }));
+        setTimeout(() => {
+          handleUpdateModalClose();
+          navigate('/resources', { 
+            state: { updatedResourceId: resource.id } 
+          });
+        }, 1000);
+      }
+    } catch (e) {
+      setUpdateState(prev => ({
+        ...prev,
+        error: e.message || 'Помилка при оновленні',
+        success: ''
+      }));
+    }
+  }, [updateState.quantity, resource, navigate, handleUpdateModalClose]);
+
+  const renderHeader = () => (
               <Box className="resource-details-header" mb={2}>
                 <img
                   src={getImageUrl(resource.photo)}
                   alt={resource.name}
                   className="resource-details-image"
-                  onError={e => { e.target.onerror = null; e.target.src = notFoundImage; }}
+        onError={e => { e.target.src = notFoundImage }}
                 />
                 <Box className="resource-details-header-info">
-                  <Typography className="resource-details-title" gutterBottom>{resource.name}</Typography>
+        <Typography className="resource-details-title" gutterBottom>
+          {resource.name}
+        </Typography>
                   <Box className="resource-details-chips">
                     <Chip icon={<CategoryIcon />} label={resource.category} size="small" />
                     <Chip icon={<LocationOnIcon />} label={resource.storage_location} size="small" />
@@ -99,27 +155,38 @@ const ResourceDetailsPage = ({ navValue, setNavValue, loginModalOpen, setLoginMo
                     </Typography>
                   )}
                   {resource.status && (
-                    <Typography className="resource-details-status-label">Статус: {translateStatus(resource.status)}</Typography>
+          <Typography className="resource-details-status-label">
+            Статус: {STATUS_TRANSLATIONS[resource.status] || resource.status}
+          </Typography>
                   )}
                 </Box>
               </Box>
-              <Divider className="resource-details-divider" />
-              <Typography className="resource-details-section-label">Опис</Typography>
-              <Typography className="resource-details-description" gutterBottom>{resource.comment || 'Опис відсутній'}</Typography>
-              <Divider className="resource-details-divider" />
+  );
+
+  const renderQuantitySection = () => (
+    <>
               <Typography className="resource-details-section-label">Кількість</Typography>
               <Box display="flex" alignItems="center" gap={2}>
-                <Typography className="resource-details-quantity-detail" gutterBottom>{Number(resource.quantity) % 1 === 0 ? Number(resource.quantity) : Number(resource.quantity).toFixed(2)} {resource.unit}</Typography>
+        <Typography className="resource-details-quantity-detail" gutterBottom>
+          {Number(resource.quantity) % 1 === 0 
+            ? Number(resource.quantity) 
+            : Number(resource.quantity).toFixed(2)} {resource.unit}
+        </Typography>
                 {isAuthenticated && (
-                  <Button variant="outlined" size="small" color="primary" onClick={() => {
-                    setUpdateModalOpen(true);
-                    setNewQuantity(Number(resource.quantity) % 1 === 0 ? Number(resource.quantity) : Number(resource.quantity).toFixed(2));
-                    setUpdateError('');
-                    setUpdateSuccess('');
-                  }}>Оновити</Button>
+          <Button 
+            variant="outlined" 
+            size="small" 
+            color="primary" 
+            onClick={handleUpdateModalOpen}
+          >
+            Оновити
+          </Button>
                 )}
               </Box>
-              <Divider className="resource-details-divider" />
+    </>
+  );
+
+  const renderMetaInfo = () => (
               <Box className="resource-details-meta">
                 {resource.added_by && (
                   <Typography className="resource-details-meta-item">
@@ -128,70 +195,122 @@ const ResourceDetailsPage = ({ navValue, setNavValue, loginModalOpen, setLoginMo
                 )}
                 {resource.date_added && (
                   <Typography className="resource-details-meta-item">
-                    Дата додавання: <b>{new Date(resource.date_added).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</b>
+          Дата додавання: <b>
+            {new Date(resource.date_added).toLocaleString('uk-UA', { 
+              day: '2-digit', 
+              month: '2-digit', 
+              year: 'numeric', 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </b>
                   </Typography>
                 )}
               </Box>
-            </Box>
-          ) : null}
-          <Box className="resource-details-back" onClick={() => navigate('/resources')}>
-            <ArrowBackIcon className="resource-details-back-icon" />
-            <span className="resource-details-back-text">До списку ресурсів</span>
-          </Box>
-          {/* Модальне вікно для оновлення кількості */}
-          <Dialog open={updateModalOpen} onClose={() => setUpdateModalOpen(false)} maxWidth="xs" fullWidth>
+  );
+
+  const renderUpdateModal = () => (
+    <Dialog 
+      open={updateState.modalOpen} 
+      onClose={handleUpdateModalClose} 
+      maxWidth="xs" 
+      fullWidth
+    >
             <DialogTitle>Оновити кількість ресурсу</DialogTitle>
             <DialogContent>
               <TextField
                 label="Нова кількість"
                 type="number"
-                value={newQuantity}
-                onChange={e => setNewQuantity(e.target.value)}
+          value={updateState.quantity}
+          onChange={handleQuantityChange}
                 fullWidth
                 autoFocus
                 margin="normal"
                 inputProps={{ min: 0 }}
               />
-              {updateError && <Alert severity="error" sx={{ mt: 1 }}>{updateError}</Alert>}
-              {updateSuccess && <Alert severity="success" sx={{ mt: 1 }}>{updateSuccess}</Alert>}
+        {updateState.error && (
+          <Alert severity="error" sx={{ mt: 1 }}>
+            {updateState.error}
+          </Alert>
+        )}
+        {updateState.success && (
+          <Alert severity="success" sx={{ mt: 1 }}>
+            {updateState.success}
+          </Alert>
+        )}
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setUpdateModalOpen(false)} color="secondary">Скасувати</Button>
-              <Button onClick={async () => {
-                const val = Number(newQuantity);
-                if (isNaN(val) || val < 0) {
-                  setUpdateError('Вкажіть коректну кількість');
-                  setUpdateSuccess('');
-                  return;
-                }
-                setUpdateError('');
-                try {
-                  if (val === 0) {
-                    // Видалити ресурс через resourceService
-                    await resourceService.deleteResource(resource.id);
-                    setUpdateSuccess('Ресурс видалено!');
-                    setTimeout(() => navigate('/resources', { state: { deletedResourceId: resource.id } }), 1000);
-                  } else {
-                    const updated = await resourceService.updateResource(resource.id, { quantity: val });
-                    setUpdateSuccess('Кількість успішно оновлено!');
-                    setResource(prev => ({ ...prev, quantity: updated.quantity }));
-                    setTimeout(() => {
-                      setUpdateModalOpen(false);
-                      // Сигналізуємо про оновлення ресурсу
-                      navigate('/resources', { 
-                        state: { 
-                          updatedResourceId: resource.id
-                        } 
-                      });
-                    }, 1000);
-                  }
-                } catch (e) {
-                  setUpdateError(e.message || 'Помилка при оновленні');
-                  setUpdateSuccess('');
-                }
-              }} color="primary" variant="contained">Оновити</Button>
+        <Button onClick={handleUpdateModalClose} color="secondary">
+          Скасувати
+        </Button>
+        <Button 
+          onClick={handleQuantityUpdate} 
+          color="primary" 
+          variant="contained"
+        >
+          Оновити
+        </Button>
             </DialogActions>
           </Dialog>
+  );
+
+  if (loading) {
+    return (
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Typography color="error" align="center">{error}</Typography>
+      </Container>
+    );
+  }
+
+  if (!resource) {
+    return null;
+  }
+
+  return (
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Box className="resource-details-box" sx={{ 
+        background: 'rgba(255,255,255,0.95)', 
+        borderRadius: 2, 
+        p: 4, 
+        boxShadow: 2 
+      }}>
+        {renderHeader()}
+        
+        <Divider className="resource-details-divider" />
+        
+        <Typography className="resource-details-section-label">Опис</Typography>
+        <Typography className="resource-details-description" gutterBottom>
+          {resource.comment || 'Опис відсутній'}
+        </Typography>
+        
+        <Divider className="resource-details-divider" />
+        
+        {renderQuantitySection()}
+        
+        <Divider className="resource-details-divider" />
+        
+        {renderMetaInfo()}
+      </Box>
+
+      <Box 
+        className="resource-details-back" 
+        onClick={() => navigate('/resources')}
+      >
+        <ArrowBackIcon className="resource-details-back-icon" />
+        <span className="resource-details-back-text">До списку ресурсів</span>
+      </Box>
+
+      {renderUpdateModal()}
         </Container>
   );
 };

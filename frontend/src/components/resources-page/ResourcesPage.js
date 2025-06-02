@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import {
   Container,
   Typography,
@@ -29,21 +30,14 @@ const CATEGORY_OPTIONS = {
 };
 
 // Масив категорій для фільтра
-const CATEGORIES_ARRAY = [
-  CATEGORY_OPTIONS.ALL, 
-  CATEGORY_OPTIONS.MEDICAL, 
-  CATEGORY_OPTIONS.EQUIPMENT, 
-  CATEGORY_OPTIONS.FOOD, 
-  CATEGORY_OPTIONS.TECH, 
-  CATEGORY_OPTIONS.CLOTHES, 
-  CATEGORY_OPTIONS.OTHER
-];
+const CATEGORIES_ARRAY = Object.values(CATEGORY_OPTIONS);
 
 const ResourcesPage = () => {
-  // Стан
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState(CATEGORY_OPTIONS.ALL);
-  const [locationFilter, setLocationFilter] = useState(DEFAULT_LOCATION);
+  const [searchState, setSearchState] = useState({
+    term: '',
+    category: CATEGORY_OPTIONS.ALL,
+    location: DEFAULT_LOCATION
+  });
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,58 +45,19 @@ const ResourcesPage = () => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const location = useLocation();
 
-  // Функція для отримання ресурсів з API
-  const fetchResources = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await resourceService.getResources();
-      if (data) {
-        const resultsArray = processApiResponse(data);
-        const formattedResources = formatResourceData(resultsArray);
-        setResources(formattedResources);
-      }
-    } catch (error) {
-      console.error('Error fetching resources:', error);
-      setError('Не вдалося завантажити дані про ресурси. Спробуйте оновити сторінку.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const formatResourceData = useCallback((item) => ({
+    id: item.id,
+    name: item.name,
+    category: item.category.charAt(0).toUpperCase() + item.category.slice(1),
+    location: item.storage_location,
+    quantity: parseFloat(item.quantity),
+    unit: item.unit,
+    description: item.comment || 'Опис відсутній',
+    photo: item.photo || null,
+    status: item.status
+  }), []);
 
-  // Отримання ресурсів при завантаженні сторінки
-  useEffect(() => {
-    fetchResources();
-  }, [location.key]);
-
-  // Обробка результатів пошуку
-  const handleSearchResults = (searchResults) => {
-    if (searchResults) {
-      const resultsArray = processApiResponse(searchResults);
-      const formattedResources = formatResourceData(resultsArray);
-      setResources(formattedResources);
-    }
-  };
-
-  // Обробка оновлення після редагування ресурсу
-  useEffect(() => {
-    if (location.state?.updatedResourceId) {
-      fetchResources();
-      // Очищаємо стан після оновлення
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state]);
-  
-  useEffect(() => {
-    if (location.state && location.state.deletedResourceId) {
-      setResources(prev => prev.filter(r => r.id !== location.state.deletedResourceId));
-      window.history.replaceState({}, document.title); // очищаємо state після обробки
-    }
-    // eslint-disable-next-line
-  }, [location.state]);
-  
-  // Допоміжна функція для обробки відповіді API (обробка пагінації)
-  const processApiResponse = (data) => {
+  const processApiResponse = useCallback((data) => {
     const resultsArray = data.results ? data.results : data;
     
     if (!Array.isArray(resultsArray)) {
@@ -110,43 +65,73 @@ const ResourcesPage = () => {
       throw new Error('Unexpected API response format');
     }
     
-    return resultsArray;
-  };
+    return resultsArray.map(formatResourceData);
+  }, [formatResourceData]);
+
+  const fetchResources = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await resourceService.getResources();
+      if (data) {
+        setResources(processApiResponse(data));
+      }
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+      setError('Не вдалося завантажити дані про ресурси. Спробуйте оновити сторінку.');
+    } finally {
+      setLoading(false);
+    }
+  }, [processApiResponse]);
+
+  useEffect(() => {
+    fetchResources();
+  }, [fetchResources, location.key]);
+
+  useEffect(() => {
+    if (location.state?.updatedResourceId) {
+      fetchResources();
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, fetchResources]);
   
-  // Допоміжна функція для форматування даних ресурсів для відображення
-  const formatResourceData = (items) => {
-    return items.map(item => ({
-      id: item.id,
-      name: item.name,
-      category: item.category.charAt(0).toUpperCase() + item.category.slice(1),  // Перша літера великою
-      location: item.storage_location,
-      quantity: parseFloat(item.quantity),
-      unit: item.unit,
-      description: item.comment || 'Опис відсутній',
-      photo: item.photo || null,
-      status: item.status
-    }));
-  };
+  useEffect(() => {
+    if (location.state?.deletedResourceId) {
+      setResources(prev => prev.filter(r => r.id !== location.state.deletedResourceId));
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
-  // Отримання унікальних місць розташування з даних ресурсів
-  const uniqueLocations = [DEFAULT_LOCATION, ...new Set(resources.map(resource => resource.location).filter(Boolean))];
+  const handleSearchResults = useCallback((searchResults) => {
+    if (searchResults) {
+      setResources(processApiResponse(searchResults));
+    }
+  }, [processApiResponse]);
 
-  // Фільтрація ресурсів на основі вибору користувача
-  const filteredResources = resources.filter(resource => {
-    // Фільтр за категорією (без урахування регістру)
-    const categoryMatch = categoryFilter === CATEGORY_OPTIONS.ALL || 
-                           resource.category.toLowerCase() === categoryFilter.toLowerCase();
+  const handleNewResource = useCallback((newResource) => {
+    setResources(prev => [formatResourceData(newResource), ...prev]);
+  }, [formatResourceData]);
+
+  const getFilteredResources = useCallback(() => {
+    return resources.filter(resource => {
+      const categoryMatch = searchState.category === CATEGORY_OPTIONS.ALL || 
+                          resource.category.toLowerCase() === searchState.category.toLowerCase();
     
-    // Фільтр за місцем розташування
-    const locationMatch = locationFilter === DEFAULT_LOCATION || resource.location === locationFilter;
+      const locationMatch = searchState.location === DEFAULT_LOCATION || 
+                          resource.location === searchState.location;
     
-    // Фільтр за пошуковим запитом
-    const searchMatch = !searchTerm || 
-                         resource.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (resource.description && resource.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      const searchMatch = !searchState.term || 
+                        resource.name.toLowerCase().includes(searchState.term.toLowerCase()) ||
+                        (resource.description && resource.description.toLowerCase().includes(searchState.term.toLowerCase()));
     
     return categoryMatch && locationMatch && searchMatch;
   });
+  }, [resources, searchState]);
+
+  const uniqueLocations = [
+    DEFAULT_LOCATION, 
+    ...new Set(resources.map(resource => resource.location).filter(Boolean))
+  ];
 
   // Функції відображення
   const renderHeader = () => (
@@ -161,50 +146,8 @@ const ResourcesPage = () => {
     </div>
   );
 
-  const renderLoading = () => (
-    <div className="resources-loading">
-      <CircularProgress />
-    </div>
-  );
-
-  const renderError = () => (
-    <div className="resources-error">
-      <Typography color="error">{error}</Typography>
-    </div>
-  );
-
-  const renderEmptyResults = () => (
-    <div className="resources-empty">
-      <Typography variant="h6">Ресурси не знайдено</Typography>
-    </div>
-  );
-
-  const renderResourcesList = () => (
-    <div className="resources-grid">
-      {filteredResources.map((resource) => (
-        <div className="resources-grid-item" key={resource.id}>
-          <ResourceCard resource={resource} />
-        </div>
-      ))}
-    </div>
-  );
-
-  // Основний рендер
-  return (
-    <Container maxWidth="lg" className="resources-container">
-      {renderHeader()}
-      <SearchComponent 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        categoryFilter={categoryFilter}
-        setCategoryFilter={setCategoryFilter}
-        locationFilter={locationFilter}
-        setLocationFilter={setLocationFilter}
-        categories={CATEGORIES_ARRAY}
-        locations={uniqueLocations}
-        onSearch={handleSearchResults}
-      />
-      {isAuthenticated && (
+  const renderAddResourceSection = () => (
+    isAuthenticated && (
         <div className="add-resource-container">
           <div className="add-resource-content">
             <span className="add-resource-title">ДОДАТИ РЕСУРС</span>
@@ -228,31 +171,73 @@ const ResourcesPage = () => {
             </Button>
           </div>
         </div>
-      )}
+    )
+  );
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="resources-loading">
+          <CircularProgress />
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="resources-error">
+          <Typography color="error">{error}</Typography>
+        </div>
+      );
+    }
+
+    const filteredResources = getFilteredResources();
+    
+    if (filteredResources.length === 0) {
+      return (
+        <div className="resources-empty">
+          <Typography variant="h6">Ресурси не знайдено</Typography>
+        </div>
+      );
+    }
+
+    return (
+      <div className="resources-grid">
+        {filteredResources.map((resource) => (
+          <div className="resources-grid-item" key={resource.id}>
+            <ResourceCard resource={resource} />
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Основний рендер
+  return (
+    <Container maxWidth="lg" className="resources-container">
+      {renderHeader()}
+      
+      <SearchComponent 
+        searchTerm={searchState.term}
+        setSearchTerm={(term) => setSearchState(prev => ({ ...prev, term }))}
+        categoryFilter={searchState.category}
+        setCategoryFilter={(category) => setSearchState(prev => ({ ...prev, category }))}
+        locationFilter={searchState.location}
+        setLocationFilter={(location) => setSearchState(prev => ({ ...prev, location }))}
+        categories={CATEGORIES_ARRAY}
+        locations={uniqueLocations}
+        onSearch={handleSearchResults}
+      />
+
+      {renderAddResourceSection()}
+
       <AddResourceModal 
         open={addModalOpen} 
         onClose={() => setAddModalOpen(false)} 
-        onResourceAdded={(newResource) => {
-          setResources(prev => [
-            {
-              id: newResource.id,
-              name: newResource.name,
-              category: newResource.category.charAt(0).toUpperCase() + newResource.category.slice(1),
-              location: newResource.storage_location,
-              quantity: parseFloat(newResource.quantity),
-              unit: newResource.unit,
-              description: newResource.comment || 'Опис відсутній',
-              photo: newResource.photo || null,
-              status: newResource.status
-            },
-            ...prev
-          ]);
-        }}
+        onResourceAdded={handleNewResource}
       />
-      {loading ? renderLoading() :
-       error ? renderError() :
-       filteredResources.length === 0 ? renderEmptyResults() :
-       renderResourcesList()}
+
+      {renderContent()}
     </Container>
   );
 };
