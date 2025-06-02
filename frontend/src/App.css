@@ -44,7 +44,7 @@ h1, h2, h3, h4, h5, h6,
   z-index: 2;
   padding-top: 64px; /* Місце для фіксованої навігаційної панелі */
   padding-bottom: 20px;
-  min-height: calc(100vh - 84px);
+  min-height: 100vh; /* Мінімальна висота контенту - висота екрану */
   overflow: visible;
 }
 

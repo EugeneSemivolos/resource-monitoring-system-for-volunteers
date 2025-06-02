@@ -10,6 +10,7 @@ import { UserProvider } from './contexts/UserContext';
 import HistoryPage from './components/resources-page/HistoryPage';
 import MissionPage from './components/mission-page/MissionPage';
 import ProfilePage from './components/profile/ProfilePage';
+import Footer from './components/common/Footer';
 import './App.css';
 
 // Компонент для скролу на початок при зміні маршруту
@@ -74,6 +75,7 @@ function App() {
               <Route path="/history" element={<HistoryPage navValue={navValue} setNavValue={setNavValue} loginModalOpen={loginModalOpen} setLoginModalOpen={setLoginModalOpen} />} />
             </Routes>
           </div>
+          <Footer />
         </div>
       </BrowserRouter>
     </UserProvider>
