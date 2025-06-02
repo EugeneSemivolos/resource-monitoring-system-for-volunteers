@@ -47,7 +47,7 @@ class VolunteerAdmin(admin.ModelAdmin):
 
 @admin.register(ActionLog)
 class ActionLogAdmin(admin.ModelAdmin):
-    list_display = ('id', 'action', 'subject', 'timestamp')
+    list_display = ('id', 'action', 'subject', 'performer', 'timestamp')
     list_filter = ('action', 'subject')
-    search_fields = ('action', 'subject')
+    search_fields = ('action', 'subject', 'performer', 'description')
     date_hierarchy = 'timestamp'

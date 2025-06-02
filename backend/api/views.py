@@ -15,6 +15,8 @@ from django.db import transaction
 import json
 import re
 from django.utils.dateparse import parse_date
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.models import Token
 
 @api_view(['GET'])
 def hello_world(request):
@@ -35,6 +37,12 @@ class ResourceViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'comment', 'added_by', 'organization']
     ordering_fields = ['name', 'date_added', 'quantity', 'expiry_date']
     ordering = ['-date_added']  # За замовчуванням сортування за датою додавання (спочатку нові)
+    permission_classes = [IsAuthenticated]  # Додаємо вимогу автентифікації
+    
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return []  # Дозволяємо всім переглядати ресурси
+        return [IsAuthenticated()]  # Для інших дій потрібна автентифікація
     
     @method_decorator(cache_page(60*5))  # Кешування на 5 хвилин
     @method_decorator(vary_on_cookie)
@@ -47,9 +55,24 @@ class ResourceViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         instance = serializer.save()
+        performer_name = None
+        print("DEBUG: Creating resource log")
+        print(f"DEBUG: Request user: {self.request.user}")
+        print(f"DEBUG: Is authenticated: {self.request.user.is_authenticated}")
+        if self.request.user.is_authenticated:
+            volunteer = getattr(self.request.user, 'volunteer', None)
+            print(f"DEBUG: Volunteer: {volunteer}")
+            if volunteer:
+                performer_name = f"{volunteer.first_name} {volunteer.last_name}"
+            else:
+                performer_name = self.request.user.get_full_name() or self.request.user.username
+        print(f"DEBUG: Performer name: {performer_name}")
+        
         ActionLog.objects.create(
-            action='added', subject='resource',
-            description=f"Додано новий ресурс: {instance.name} (ID: {instance.id})"
+            action='added', 
+            subject='resource',
+            description=f"Додано новий ресурс: {instance.name} (ID: {instance.id})",
+            performer=performer_name
         )
 
     def perform_update(self, serializer):
@@ -66,14 +89,36 @@ class ResourceViewSet(viewsets.ModelViewSet):
             description += "Змінені поля: " + "; ".join(changed_fields)
         else:
             description += "Без змін у полях."
+
+        performer_name = None
+        if self.request.user.is_authenticated:
+            volunteer = getattr(self.request.user, 'volunteer', None)
+            if volunteer:
+                performer_name = f"{volunteer.first_name} {volunteer.last_name}"
+            else:
+                performer_name = self.request.user.get_full_name() or self.request.user.username
+
         ActionLog.objects.create(
-            action='updated', subject='resource', description=description
+            action='updated', 
+            subject='resource', 
+            description=description,
+            performer=performer_name
         )
 
     def perform_destroy(self, instance):
+        performer_name = None
+        if self.request.user.is_authenticated:
+            volunteer = getattr(self.request.user, 'volunteer', None)
+            if volunteer:
+                performer_name = f"{volunteer.first_name} {volunteer.last_name}"
+            else:
+                performer_name = self.request.user.get_full_name() or self.request.user.username
+
         ActionLog.objects.create(
-            action='deleted', subject='resource',
-            description=f"Видалено ресурс: {instance.name} (ID: {instance.id})"
+            action='deleted', 
+            subject='resource',
+            description=f"Видалено ресурс: {instance.name} (ID: {instance.id})",
+            performer=performer_name
         )
         instance.delete()
 
@@ -100,7 +145,13 @@ class VolunteerViewSet(viewsets.ModelViewSet):
     filterset_fields = ['status', 'organization']
     search_fields = ['last_name', 'first_name', 'middle_name', 'skills', 'description', 'email', 'phone']
     ordering_fields = ['last_name', 'first_name', 'registration_date', 'last_login']
-    ordering = ['last_name', 'first_name']  # За замовчуванням сортування за прізвищем та ім'ям
+    ordering = ['last_name', 'first_name']
+    permission_classes = [IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.action in ['create', 'login', 'list', 'retrieve']:  # Додаємо 'list' та 'retrieve'
+            return []  # Дозволяємо реєстрацію, вхід та перегляд без автентифікації
+        return [IsAuthenticated()]  # Для інших дій потрібна автентифікація
     
     @method_decorator(cache_page(60*5))  # Кешування на 5 хвилин
     @method_decorator(vary_on_cookie)
@@ -113,9 +164,19 @@ class VolunteerViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         instance = serializer.save()
+        performer_name = None
+        if self.request.user.is_authenticated:
+            volunteer = getattr(self.request.user, 'volunteer', None)
+            if volunteer:
+                performer_name = f"{volunteer.first_name} {volunteer.last_name}"
+            else:
+                performer_name = self.request.user.get_full_name() or self.request.user.username
+
         ActionLog.objects.create(
-            action='added', subject='volunteer',
-            description=f"Додано нового волонтера: {instance.first_name} {instance.last_name} (ID: {instance.id})"
+            action='added', 
+            subject='volunteer',
+            description=f"Додано нового волонтера: {instance.first_name} {instance.last_name} (ID: {instance.id})",
+            performer=performer_name
         )
 
     def perform_update(self, serializer):
@@ -132,15 +193,31 @@ class VolunteerViewSet(viewsets.ModelViewSet):
             description += "Змінені поля: " + "; ".join(changed_fields)
         else:
             description += "Без змін у полях."
+
+        performer_name = None
+        if self.request.user.is_authenticated:
+            volunteer = getattr(self.request.user, 'volunteer', None)
+            if volunteer:
+                performer_name = f"{volunteer.first_name} {volunteer.last_name}"
+            else:
+                performer_name = self.request.user.get_full_name() or self.request.user.username
+
         ActionLog.objects.create(
-            action='updated', subject='volunteer', description=description
+            action='updated', 
+            subject='volunteer', 
+            description=description,
+            performer=performer_name
         )
 
     def perform_destroy(self, instance):
+        # Створюємо запис в історії перед видаленням
         ActionLog.objects.create(
-            action='deleted', subject='volunteer',
-            description=f"Видалено волонтера: {instance.first_name} {instance.last_name} (ID: {instance.id})"
+            action='deleted',
+            subject='volunteer',
+            description=f"Видалено волонтера: {instance.first_name} {instance.last_name}",
+            performer="Система"
         )
+        # Видаляємо волонтера
         instance.delete()
     
     def create(self, request, *args, **kwargs):
@@ -223,6 +300,14 @@ class VolunteerViewSet(viewsets.ModelViewSet):
                 # Пароль буде видалено з validated_data в методі create серіалізатора
                 volunteer = serializer.save(user=user)
                 
+                # Додаємо запис в історію змін
+                ActionLog.objects.create(
+                    action='added',
+                    subject='volunteer',
+                    description=f"Зареєстровано нового волонтера: {volunteer.first_name} {volunteer.last_name}",
+                    performer="Система"
+                )
+                
                 # Повертаємо дані у форматі camelCase для клієнта
                 response_data = {
                     "id": volunteer.id,
@@ -301,6 +386,9 @@ class VolunteerViewSet(viewsets.ModelViewSet):
             volunteer.last_login = timezone.now()
             volunteer.save()
             
+            # Отримуємо або створюємо токен для користувача
+            token, _ = Token.objects.get_or_create(user=user)
+            
             # Конвертуємо модель у словник з camelCase ключами для фронтенду
             volunteer_data = {
                 "id": volunteer.id,
@@ -310,13 +398,10 @@ class VolunteerViewSet(viewsets.ModelViewSet):
                 "photoUrl": request.build_absolute_uri(volunteer.photo.url) if volunteer.photo and volunteer.photo.name else None
             }
             
-            # Генеруємо простий токен (в продакшені використовуйте JWT або OAuth)
-            token = f"token-{volunteer.id}-{timezone.now().timestamp()}"
-            
             return Response({
                 "success": True,
                 "message": "Успішний вхід",
-                "token": token,
+                "token": token.key,
                 "volunteer": volunteer_data
             })
             
@@ -353,6 +438,7 @@ def action_log_list(request):
             'subject': log.get_subject_display(),
             'timestamp': log.timestamp.isoformat(),
             'description': log.description,
+            'performer': log.performer
         }
         for log in logs
     ]

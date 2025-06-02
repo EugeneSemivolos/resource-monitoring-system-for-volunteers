@@ -63,13 +63,13 @@ function App() {
           />
           <div className="content-wrapper">
             <Routes>
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/resources/:id" element={<ResourceDetailsPage navValue={navValue} setNavValue={setNavValue} loginModalOpen={loginModalOpen} setLoginModalOpen={setLoginModalOpen} />} />
-              <Route path="/history" element={<HistoryPage navValue={navValue} setNavValue={setNavValue} loginModalOpen={loginModalOpen} setLoginModalOpen={setLoginModalOpen} />} />
+              <Route path="/" element={<MainPage setNavValue={setNavValue} />} />
               <Route path="/resources" element={<ResourcesPage />} />
               <Route path="/volunteers" element={<VolunteersPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/resources/:id" element={<ResourceDetailsPage />} />
+              <Route path="/history" element={<HistoryPage navValue={navValue} setNavValue={setNavValue} loginModalOpen={loginModalOpen} setLoginModalOpen={setLoginModalOpen} />} />
               <Route path="/mission" element={<Mission />} />
-              <Route path="/" element={<MainPage />} />
             </Routes>
           </div>
         </div>

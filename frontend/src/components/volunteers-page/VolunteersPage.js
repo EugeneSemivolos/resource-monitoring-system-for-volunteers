@@ -7,10 +7,8 @@ import {
 import PeopleIcon from '@mui/icons-material/People';
 import VolunteerSearchComponent from './volunteer-search/VolunteerSearchComponent';
 import VolunteerCard from './volunteer-card/VolunteerCard';
+import { volunteerService } from '../../services/api';
 import './VolunteersPage.css';
-
-// Константи
-const API_URL = 'http://localhost:8000/api/volunteers/';
 
 const VolunteersPage = () => {
   // Стан
@@ -24,15 +22,8 @@ const VolunteersPage = () => {
     const fetchVolunteers = async () => {
       try {
         setLoading(true);
-        const response = await fetch(API_URL);
-        
-        if (!response.ok) {
-          throw new Error('Помилка отримання даних');
-        }
-        
-        const data = await response.json();
+        const data = await volunteerService.getVolunteers();
         const resultsArray = processApiResponse(data);
-        
         setVolunteers(resultsArray);
       } catch (error) {
         console.error('Помилка при завантаженні даних:', error);

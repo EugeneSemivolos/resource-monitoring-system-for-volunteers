@@ -16,7 +16,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers['Authorization'] = `Token ${token}`;
     }
     return config;
   },
@@ -196,23 +196,23 @@ const volunteerService = {
   // Отримання списку волонтерів
   getVolunteers: async () => {
     try {
-      // Спробуємо отримати дані з сервера
-      try {
-        const response = await api.get('/volunteers/');
-        return response.data;
-      } catch (serverError) {
-        console.warn('Не вдалося з\'єднатися з сервером, використовуємо локальне сховище:', serverError);
-        
-        // Резервне отримання з локального сховища
-        const volunteers = JSON.parse(localStorage.getItem('volunteers') || '[]');
-        return {
-          success: true,
-          data: volunteers
-        };
-      }
+      const response = await api.get('/volunteers/');
+      return response.data;
     } catch (error) {
       console.error('Помилка отримання списку волонтерів:', error);
-      throw error;
+      if (error.response) {
+        // Якщо сервер відповів з помилкою
+        if (error.response.status === 401) {
+          // Для неавторизованих запитів просто повертаємо дані
+          return { results: [], count: 0 };
+        }
+        throw new Error(error.response.data.message || 'Помилка отримання даних');
+      } else if (error.request) {
+        // Якщо запит не дійшов до сервера
+        throw new Error('Не вдалося з\'єднатися з сервером');
+      } else {
+        throw new Error('Помилка при формуванні запиту');
+      }
     }
   }
 };

@@ -97,6 +97,7 @@ class ActionLog(models.Model):
     subject = models.CharField(max_length=20, choices=SUBJECT_CHOICES, verbose_name='Предмет')
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name='Час дії')
     description = models.TextField(blank=True, null=True, verbose_name='Опис дії')
+    performer = models.CharField(max_length=200, blank=True, null=True, verbose_name='Виконавець')
 
     def __str__(self):
         return f"{self.get_action_display()} {self.get_subject_display()} (#{self.id})"

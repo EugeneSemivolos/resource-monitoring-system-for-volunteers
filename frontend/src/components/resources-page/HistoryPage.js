@@ -60,7 +60,7 @@ const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen 
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>Історія змін</Typography>
+      <Typography variant="h4" gutterBottom sx={{ background: '#fff', borderRadius: 2, boxShadow: 1, p: 2 }}>Історія змін</Typography>
       <Box
         component="form"
         onSubmit={handleFilter}
@@ -110,20 +110,22 @@ const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen 
               <TableCell>Обʼєкт</TableCell>
               <TableCell>Дія</TableCell>
               <TableCell>Опис</TableCell>
+              <TableCell>Виконавець</TableCell>
               <TableCell>Дата та час</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {loading && logs.length === 0 ? (
-              <TableRow><TableCell colSpan={5}>Завантаження...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6}>Завантаження...</TableCell></TableRow>
             ) : logs.length === 0 ? (
-              <TableRow><TableCell colSpan={5}>Записів не знайдено</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6}>Записів не знайдено</TableCell></TableRow>
             ) : logs.map((log, idx) => (
               <TableRow key={log.id}>
                 <TableCell>{log.id}</TableCell>
                 <TableCell>{log.subject}</TableCell>
                 <TableCell>{log.action}</TableCell>
                 <TableCell>{log.description}</TableCell>
+                <TableCell>{log.performer || 'Система'}</TableCell>
                 <TableCell>{new Date(log.timestamp).toLocaleString('uk-UA')}</TableCell>
               </TableRow>
             ))}
@@ -132,7 +134,15 @@ const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen 
       </TableContainer>
       {logs.length < total && (
         <Box display="flex" justifyContent="center" mt={2}>
-          <Button onClick={handleShowMore} disabled={loading} variant="outlined">Показати ще</Button>
+          <Button 
+            onClick={handleShowMore} 
+            disabled={loading} 
+            variant="contained" 
+            color="primary" 
+            sx={{ minWidth: 150, height: 40 }}
+          >
+            Показати ще
+          </Button>
         </Box>
       )}
     </Container>

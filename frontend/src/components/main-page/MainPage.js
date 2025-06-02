@@ -65,10 +65,10 @@ const CAROUSEL_SETTINGS = {
   stopOnHover: true
 };
 
-const MainPage = () => {
+const MainPage = ({ setNavValue }) => {
   return (
     <Container maxWidth="lg">
-      <WelcomeSection />
+      <WelcomeSection setNavValue={setNavValue} />
 
       {/* Розділ про нашу задачу */}
       <Box className="content-box">

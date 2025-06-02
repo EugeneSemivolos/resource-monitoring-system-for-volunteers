@@ -2,9 +2,17 @@ import React from 'react';
 import { Typography, Box } from '@mui/material';
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 import ActionButton from '../action-button/ActionButton';
+import { useNavigate } from 'react-router-dom';
 import './WelcomeSection.css';
 
-const WelcomeSection = () => {
+const WelcomeSection = ({ setNavValue }) => {
+  const navigate = useNavigate();
+
+  const handleStartWork = () => {
+    setNavValue(1); // 1 is the index of "Ресурси" tab
+    navigate('/resources');
+  };
+
   return (
     <Box className="welcome-container">
       <VolunteerActivismIcon className="welcome-icon"/>
@@ -30,7 +38,7 @@ const WelcomeSection = () => {
       <Box className="welcome-button-container">
         <ActionButton 
           text="Почати роботу" 
-          onClick={() => console.log('Початок роботи')} 
+          onClick={handleStartWork} 
         />
       </Box>
     </Box>
