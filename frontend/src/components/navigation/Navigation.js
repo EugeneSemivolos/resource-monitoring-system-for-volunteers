@@ -28,7 +28,7 @@ const Navigation = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }
     }
     return `http://localhost:8000${user.photo}`;
   };
-
+  
   const handleLogoClick = () => {
     setNavValue && setNavValue(0);
     navigate('/');

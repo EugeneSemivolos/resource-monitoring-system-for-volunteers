@@ -1,13 +1,9 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
-from django.shortcuts import render
 from rest_framework import viewsets, filters, status
 from .models import Resource, Volunteer, ActionLog
 from rest_framework import serializers
 from django_filters.rest_framework import DjangoFilterBackend
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_cookie
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -18,9 +14,24 @@ from django.utils.dateparse import parse_date
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 
-@api_view(['GET'])
-def hello_world(request):
-    return Response({"message": "Hello, React & Django!"})
+class ActionLoggingMixin:
+    def get_performer_name(self):
+        """Get the name of the action performer"""
+        if self.request.user.is_authenticated:
+            volunteer = getattr(self.request.user, 'volunteer', None)
+            if volunteer:
+                return f"{volunteer.first_name} {volunteer.last_name}"
+            return self.request.user.get_full_name() or self.request.user.username
+        return None
+
+    def log_action(self, action, subject, description):
+        """Create an action log entry"""
+        ActionLog.objects.create(
+            action=action,
+            subject=subject,
+            description=description,
+            performer=self.get_performer_name()
+        )
 
 # Створюємо серіалізатор для моделі Resource
 class ResourceSerializer(serializers.ModelSerializer):
@@ -29,47 +40,27 @@ class ResourceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 # Створюємо API представлення
-class ResourceViewSet(viewsets.ModelViewSet):
+class ResourceViewSet(ActionLoggingMixin, viewsets.ModelViewSet):
     queryset = Resource.objects.all().select_related()
     serializer_class = ResourceSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category', 'status', 'organization', 'storage_location']
     search_fields = ['name', 'comment', 'added_by', 'organization']
     ordering_fields = ['name', 'date_added', 'quantity', 'expiry_date']
-    ordering = ['-date_added']  # За замовчуванням сортування за датою додавання (спочатку нові)
-    permission_classes = [IsAuthenticated]  # Додаємо вимогу автентифікації
+    ordering = ['-date_added']
+    permission_classes = [IsAuthenticated]
     
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
-            return []  # Дозволяємо всім переглядати ресурси
-        return [IsAuthenticated()]  # Для інших дій потрібна автентифікація
-    
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-    
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+            return []
+        return [IsAuthenticated()]
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        performer_name = None
-        print("DEBUG: Creating resource log")
-        print(f"DEBUG: Request user: {self.request.user}")
-        print(f"DEBUG: Is authenticated: {self.request.user.is_authenticated}")
-        if self.request.user.is_authenticated:
-            volunteer = getattr(self.request.user, 'volunteer', None)
-            print(f"DEBUG: Volunteer: {volunteer}")
-            if volunteer:
-                performer_name = f"{volunteer.first_name} {volunteer.last_name}"
-            else:
-                performer_name = self.request.user.get_full_name() or self.request.user.username
-        print(f"DEBUG: Performer name: {performer_name}")
-        
-        ActionLog.objects.create(
-            action='added', 
-            subject='resource',
-            description=f"Додано новий ресурс: {instance.name} (ID: {instance.id})",
-            performer=performer_name
+        self.log_action(
+            'added',
+            'resource',
+            f"Додано новий ресурс: {instance.name} (ID: {instance.id})"
         )
 
     def perform_update(self, serializer):
@@ -77,45 +68,26 @@ class ResourceViewSet(viewsets.ModelViewSet):
         old_data = {field.name: getattr(old_instance, field.name) for field in old_instance._meta.fields}
         instance = serializer.save()
         new_data = {field.name: getattr(instance, field.name) for field in instance._meta.fields}
-        changed_fields = []
-        for key in new_data:
-            if old_data[key] != new_data[key]:
-                changed_fields.append(f"{key}: '{old_data[key]}' → '{new_data[key]}'")
+        
+        changed_fields = [
+            f"{key}: '{old_data[key]}' → '{new_data[key]}'"
+            for key in new_data
+            if old_data[key] != new_data[key]
+        ]
+        
         description = f"Змінено ресурс: {instance.name} (ID: {instance.id}). "
         if changed_fields:
             description += "Змінені поля: " + "; ".join(changed_fields)
         else:
             description += "Без змін у полях."
 
-        performer_name = None
-        if self.request.user.is_authenticated:
-            volunteer = getattr(self.request.user, 'volunteer', None)
-            if volunteer:
-                performer_name = f"{volunteer.first_name} {volunteer.last_name}"
-            else:
-                performer_name = self.request.user.get_full_name() or self.request.user.username
-
-        ActionLog.objects.create(
-            action='updated', 
-            subject='resource', 
-            description=description,
-            performer=performer_name
-        )
+        self.log_action('updated', 'resource', description)
 
     def perform_destroy(self, instance):
-        performer_name = None
-        if self.request.user.is_authenticated:
-            volunteer = getattr(self.request.user, 'volunteer', None)
-            if volunteer:
-                performer_name = f"{volunteer.first_name} {volunteer.last_name}"
-            else:
-                performer_name = self.request.user.get_full_name() or self.request.user.username
-
-        ActionLog.objects.create(
-            action='deleted', 
-            subject='resource',
-            description=f"Видалено ресурс: {instance.name} (ID: {instance.id})",
-            performer=performer_name
+        self.log_action(
+            'deleted',
+            'resource',
+            f"Видалено ресурс: {instance.name} (ID: {instance.id})"
         )
         instance.delete()
 
@@ -129,13 +101,12 @@ class VolunteerSerializer(serializers.ModelSerializer):
         extra_kwargs = {'user': {'read_only': True}}
 
     def create(self, validated_data):
-        # Видаляємо пароль з даних, які будуть використані для створення Volunteer
         password = validated_data.pop('password', None)
         volunteer = Volunteer.objects.create(**validated_data)
         return volunteer
 
 # Створюємо API представлення для моделі Volunteer
-class VolunteerViewSet(viewsets.ModelViewSet):
+class VolunteerViewSet(ActionLoggingMixin, viewsets.ModelViewSet):
     queryset = Volunteer.objects.all().select_related('user')
     serializer_class = VolunteerSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -146,31 +117,16 @@ class VolunteerViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_permissions(self):
-        if self.action in ['create', 'login', 'list', 'retrieve']:  # Додаємо 'list' та 'retrieve'
-            return []  # Дозволяємо реєстрацію, вхід та перегляд без автентифікації
-        return [IsAuthenticated()]  # Для інших дій потрібна автентифікація
-    
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-    
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-    
+        if self.action in ['create', 'login', 'list', 'retrieve']:
+            return []
+        return [IsAuthenticated()]
+
     def perform_create(self, serializer):
         instance = serializer.save()
-        performer_name = None
-        if self.request.user.is_authenticated:
-            volunteer = getattr(self.request.user, 'volunteer', None)
-            if volunteer:
-                performer_name = f"{volunteer.first_name} {volunteer.last_name}"
-            else:
-                performer_name = self.request.user.get_full_name() or self.request.user.username
-
-        ActionLog.objects.create(
-            action='added', 
-            subject='volunteer',
-            description=f"Додано нового волонтера: {instance.first_name} {instance.last_name} (ID: {instance.id})",
-            performer=performer_name
+        self.log_action(
+            'added',
+            'volunteer',
+            f"Додано нового волонтера: {instance.first_name} {instance.last_name} (ID: {instance.id})"
         )
 
     def perform_update(self, serializer):
@@ -178,262 +134,179 @@ class VolunteerViewSet(viewsets.ModelViewSet):
         old_data = {field.name: getattr(old_instance, field.name) for field in old_instance._meta.fields}
         instance = serializer.save()
         new_data = {field.name: getattr(instance, field.name) for field in instance._meta.fields}
-        changed_fields = []
-        for key in new_data:
-            if old_data[key] != new_data[key]:
-                changed_fields.append(f"{key}: '{old_data[key]}' → '{new_data[key]}'")
+        
+        changed_fields = [
+            f"{key}: '{old_data[key]}' → '{new_data[key]}'"
+            for key in new_data
+            if old_data[key] != new_data[key]
+        ]
+        
         description = f"Змінено волонтера: {instance.first_name} {instance.last_name} (ID: {instance.id}). "
         if changed_fields:
             description += "Змінені поля: " + "; ".join(changed_fields)
         else:
             description += "Без змін у полях."
 
-        performer_name = None
-        if self.request.user.is_authenticated:
-            volunteer = getattr(self.request.user, 'volunteer', None)
-            if volunteer:
-                performer_name = f"{volunteer.first_name} {volunteer.last_name}"
-            else:
-                performer_name = self.request.user.get_full_name() or self.request.user.username
-
-        ActionLog.objects.create(
-            action='updated', 
-            subject='volunteer', 
-            description=description,
-            performer=performer_name
-        )
+        self.log_action('updated', 'volunteer', description)
 
     def perform_destroy(self, instance):
-        # Створюємо запис в історії перед видаленням
-        ActionLog.objects.create(
-            action='deleted',
-            subject='volunteer',
-            description=f"Видалено волонтера: {instance.first_name} {instance.last_name}",
-            performer="Система"
+        self.log_action(
+            'deleted',
+            'volunteer',
+            f"Видалено волонтера: {instance.first_name} {instance.last_name}"
         )
-        # Видаляємо волонтера
         instance.delete()
     
     def create(self, request, *args, **kwargs):
-        """
-        Створює нового волонтера разом із користувачем Django User
-        """
-        # Для діагностики виводимо отримані дані
-        print(f"Отримано дані для реєстрації: {request.data}")
-        print(f"Content-Type: {request.content_type}")
-        
-        # Перевіряємо, чи всі необхідні поля присутні
         required_fields = ['first_name', 'last_name', 'email', 'phone', 'password']
         missing_fields = [field for field in required_fields if field not in request.data]
         
         if missing_fields:
-            error_message = f"Відсутні обов'язкові поля: {', '.join(missing_fields)}"
-            print(f"Помилка валідації: {error_message}")
             return Response(
-                {"message": error_message},
+                {"message": f"Відсутні обов'язкові поля: {', '.join(missing_fields)}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
-            print(f"Помилки валідації: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         email = serializer.validated_data.get('email')
-        password = serializer.validated_data.get('password')
         
-        # Розширена перевірка унікальності email
-        user_exists = User.objects.filter(email=email).exists()
-        volunteer_exists = Volunteer.objects.filter(email=email).exists()
-        
-        if user_exists or volunteer_exists:
-            error_sources = []
-            if user_exists:
-                error_sources.append("таблиці користувачів Django (auth_user)")
-            if volunteer_exists:
-                error_sources.append("таблиці волонтерів (api_volunteer)")
-                
-            error_message = f"Користувач з такою електронною поштою вже існує в {' та '.join(error_sources)}."
-            print(f"Помилка унікальності email: {error_message}")
-            
-            # Детальна інформація для діагностики
-            if user_exists:
-                user = User.objects.get(email=email)
-                print(f"Знайдено користувача Django: id={user.id}, username={user.username}")
-            if volunteer_exists:
-                volunteer = Volunteer.objects.get(email=email)
-                print(f"Знайдено волонтера: id={volunteer.id}, name={volunteer.first_name} {volunteer.last_name}")
-                
+        # Перевірка унікальності email
+        if User.objects.filter(email=email).exists() or Volunteer.objects.filter(email=email).exists():
             return Response(
-                {"message": "Користувач з такою електронною поштою вже існує."},
+                {"message": "Користувач з такою електронною поштою вже існує"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        # Перевірка надійності пароля
-        if len(password) < 8:
-            error_message = "Пароль повинен містити щонайменше 8 символів."
-            print(f"Помилка валідації: {error_message}")
-            return Response(
-                {"message": error_message},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+
         try:
             with transaction.atomic():
-                # Створюємо Django User
-                username = email  # Використовуємо email як ім'я користувача
+                # Створюємо користувача Django
                 user = User.objects.create_user(
-                    username=username,
+                    username=email,
                     email=email,
-                    password=password,
-                    first_name=serializer.validated_data.get('first_name', ''),
-                    last_name=serializer.validated_data.get('last_name', '')
+                    password=serializer.validated_data['password'],
+                    first_name=serializer.validated_data['first_name'],
+                    last_name=serializer.validated_data['last_name']
                 )
                 
-                # Створюємо Volunteer і пов'язуємо з User
-                # Пароль буде видалено з validated_data в методі create серіалізатора
+                # Створюємо волонтера
                 volunteer = serializer.save(user=user)
                 
-                # Додаємо запис в історію змін
-                ActionLog.objects.create(
-                    action='added',
-                    subject='volunteer',
-                    description=f"Зареєстровано нового волонтера: {volunteer.first_name} {volunteer.last_name}",
-                    performer="Система"
-                )
+                # Створюємо токен для користувача
+                token = Token.objects.create(user=user)
                 
-                # Повертаємо дані у форматі camelCase для клієнта
-                response_data = {
-                    "id": volunteer.id,
-                    "firstName": volunteer.first_name,
-                    "lastName": volunteer.last_name,
-                    "email": volunteer.email,
-                    "photoUrl": request.build_absolute_uri(volunteer.photo.url) if volunteer.photo and volunteer.photo.name else None
-                }
-                
-                print(f"Успішно створено волонтера: {volunteer.email}")
                 return Response({
-                    "success": True,
-                    "message": "Волонтера успішно зареєстровано",
-                    "volunteer": response_data
+                    "message": "Реєстрація успішна",
+                    "token": token.key,
+                    "volunteer": self.get_serializer(volunteer).data
                 }, status=status.HTTP_201_CREATED)
                 
         except Exception as e:
-            print(f"Помилка при реєстрації: {str(e)}")
             return Response(
                 {"message": f"Помилка при реєстрації: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_400_BAD_REQUEST
             )
-    
+
     @action(detail=False, methods=['post'], url_path='login')
     def login(self, request):
-        """Ендпоінт для входу волонтерів"""
-        data = request.data
-        
-        # Логуємо отримані дані для діагностики (без відображення пароля для безпеки)
-        print(f"Отримано дані для входу: email={data.get('email')}")
-        
-        email = data.get('email')
-        password = data.get('password')
+        email = request.data.get('email')
+        password = request.data.get('password')
         
         if not email or not password:
             return Response(
-                {"message": "Необхідно вказати email та пароль."},
+                {"message": "Необхідно вказати email та пароль"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-            
+
         try:
-            # Шукаємо користувача за email
-            try:
-                user = User.objects.get(email=email)
-            except User.DoesNotExist:
-                return Response(
-                    {"message": "Користувача з такою електронною поштою не знайдено."},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-            
-            # Перевіряємо пароль
-            user_auth = authenticate(username=user.username, password=password)
-            if not user_auth:
-                return Response(
-                    {"message": "Невірний пароль."},
-                    status=status.HTTP_401_UNAUTHORIZED
-                )
-            
-            # Знаходимо пов'язаний профіль волонтера
-            try:
-                volunteer = Volunteer.objects.get(user=user)
-            except Volunteer.DoesNotExist:
-                return Response(
-                    {"message": "Профіль волонтера не знайдено."},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-            
-            # Додаю перевірку статусу волонтера
-            if volunteer.status != 'active':
-                return Response(
-                    {"message": "Ваш акаунт ще не підтверджено адміністратором. Дочекайтеся підтвердження."},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-            
-            # Оновлюємо час останнього входу
-            volunteer.last_login = timezone.now()
-            volunteer.save()
-            
-            # Отримуємо або створюємо токен для користувача
-            token, _ = Token.objects.get_or_create(user=user)
-            
-            # Конвертуємо модель у словник з camelCase ключами для фронтенду
-            volunteer_data = {
-                "id": volunteer.id,
-                "firstName": volunteer.first_name,
-                "lastName": volunteer.last_name,
-                "email": volunteer.email,
-                "photoUrl": request.build_absolute_uri(volunteer.photo.url) if volunteer.photo and volunteer.photo.name else None
-            }
-            
-            return Response({
-                "success": True,
-                "message": "Успішний вхід",
-                "token": token.key,
-                "volunteer": volunteer_data
-            })
-            
-        except Exception as e:
-            print(f"Помилка при вході: {str(e)}")
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
             return Response(
-                {"message": "Помилка при вході в систему."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"message": "Користувача з такою електронною поштою не знайдено"},
+                status=status.HTTP_404_NOT_FOUND
             )
+
+        if not user.check_password(password):
+            return Response(
+                {"message": "Введено неправильний логін або пароль"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        try:
+            volunteer = Volunteer.objects.get(user=user)
+        except Volunteer.DoesNotExist:
+            return Response(
+                {"message": "Обліковий запис волонтера не знайдено"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if volunteer.status != 'active':
+            return Response(
+                {"message": "Адміністратор ще не підтвердив вас"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Оновлюємо час останнього входу
+        volunteer.last_login = timezone.now()
+        volunteer.save()
+
+        # Отримуємо або створюємо токен
+        token, _ = Token.objects.get_or_create(user=user)
+
+        return Response({
+            "message": "Вхід успішний",
+            "token": token.key,
+            "volunteer": self.get_serializer(volunteer).data
+        })
 
 @api_view(['GET'])
 def action_log_list(request):
-    subject = request.GET.get('subject')
-    action = request.GET.get('action')
-    date_from = request.GET.get('date_from')
-    date_to = request.GET.get('date_to')
+    if not request.user.is_authenticated:
+        return Response({"message": "Необхідна автентифікація"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    # Get query parameters
     offset = int(request.GET.get('offset', 0))
-    limit = 10
-    logs = ActionLog.objects.all().order_by('-timestamp')
+    page_size = int(request.GET.get('page_size', 10))
+    subject = request.GET.get('subject', '')
+    action = request.GET.get('action', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    
+    # Start with all logs
+    logs = ActionLog.objects.all()
+    
+    # Apply filters
     if subject:
         logs = logs.filter(subject=subject)
     if action:
         logs = logs.filter(action=action)
     if date_from:
-        logs = logs.filter(timestamp__date__gte=parse_date(date_from))
+        logs = logs.filter(timestamp__date__gte=date_from)
     if date_to:
-        logs = logs.filter(timestamp__date__lte=parse_date(date_to))
-    total = logs.count()
-    logs = logs[offset:offset+limit]
-    data = [
-        {
+        logs = logs.filter(timestamp__date__lte=date_to)
+    
+    # Order by timestamp descending
+    logs = logs.order_by('-timestamp')
+    
+    # Get total count
+    total_count = logs.count()
+    
+    # Apply pagination
+    logs = logs[offset:offset + page_size]
+    
+    # Format response
+    data = {
+        'total': total_count,
+        'results': [{
             'id': log.id,
-            'action': log.get_action_display(),
-            'subject': log.get_subject_display(),
-            'timestamp': log.timestamp.isoformat(),
+            'timestamp': log.timestamp,
+            'action': log.action,
+            'subject': log.subject,
             'description': log.description,
             'performer': log.performer
-        }
-        for log in logs
-    ]
-    return Response({'results': data, 'total': total}, status=status.HTTP_200_OK)
+        } for log in logs]
+    }
+    
+    return Response(data)

@@ -15,6 +15,30 @@ const ACTION_OPTIONS = [
 ];
 const PAGE_SIZE = 10;
 
+const translateSubject = (subject) => {
+  switch (subject) {
+    case 'resource':
+      return 'Ресурс';
+    case 'volunteer':
+      return 'Волонтер';
+    default:
+      return subject;
+  }
+};
+
+const translateAction = (action) => {
+  switch (action) {
+    case 'added':
+      return 'Додано';
+    case 'updated':
+      return 'Змінено';
+    case 'deleted':
+      return 'Видалено';
+    default:
+      return action;
+  }
+};
+
 const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }) => {
   const [logs, setLogs] = useState([]);
   const [subject, setSubject] = useState('');
@@ -27,22 +51,32 @@ const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen 
 
   const fetchLogs = async (reset = false, customOffset = 0) => {
     setLoading(true);
-    let url = `/api/history/?offset=${customOffset}`;
+    let url = `/api/history/?offset=${customOffset}&page_size=${PAGE_SIZE}`;
     if (subject) url += `&subject=${subject}`;
     if (action) url += `&action=${action}`;
     if (dateFrom) url += `&date_from=${dateFrom}`;
     if (dateTo) url += `&date_to=${dateTo}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    setTotal(data.total);
-    if (reset) {
-      setLogs(data.results);
-      setOffset(PAGE_SIZE);
-    } else {
-      setLogs(prev => [...prev, ...data.results]);
-      setOffset(prev => prev + PAGE_SIZE);
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.message || 'Помилка при завантаженні даних');
+      }
+      
+      setTotal(data.total);
+      if (reset) {
+        setLogs(data.results);
+        setOffset(PAGE_SIZE);
+      } else {
+        setLogs(prev => [...prev, ...data.results]);
+        setOffset(prev => prev + PAGE_SIZE);
+      }
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -147,8 +181,8 @@ const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen 
             ) : logs.map((log, idx) => (
               <TableRow key={log.id}>
                 <TableCell>{log.id}</TableCell>
-                <TableCell>{log.subject}</TableCell>
-                <TableCell>{log.action}</TableCell>
+                <TableCell>{translateSubject(log.subject)}</TableCell>
+                <TableCell>{translateAction(log.action)}</TableCell>
                 <TableCell>{log.description}</TableCell>
                 <TableCell>{log.performer || 'Система'}</TableCell>
                 <TableCell>{new Date(log.timestamp).toLocaleString('uk-UA')}</TableCell>

@@ -74,10 +74,10 @@ const SearchComponent = ({
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-field"
             InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="action" />
-                </InputAdornment>
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
               )
             }}
           />

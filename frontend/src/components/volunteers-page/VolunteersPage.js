@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -24,7 +24,7 @@ const VolunteersPage = () => {
   const { shouldRefreshVolunteers, setShouldRefreshVolunteers } = useUser();
 
   // Функція для отримання даних про волонтерів
-  const fetchVolunteers = async () => {
+  const fetchVolunteers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -37,12 +37,12 @@ const VolunteersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Отримання даних про волонтерів при завантаженні сторінки
   useEffect(() => {
     fetchVolunteers();
-  }, []);
+  }, [fetchVolunteers]);
 
   // Оновлення при зміні location state або глобального стану оновлення
   useEffect(() => {
@@ -52,7 +52,7 @@ const VolunteersPage = () => {
       window.history.replaceState({}, document.title);
       setShouldRefreshVolunteers(false);
     }
-  }, [location.state, shouldRefreshVolunteers, setShouldRefreshVolunteers]);
+  }, [location.state, shouldRefreshVolunteers, setShouldRefreshVolunteers, fetchVolunteers]);
   
   // Допоміжна функція для обробки відповіді API (обробка пагінації)
   const processApiResponse = (data) => {
