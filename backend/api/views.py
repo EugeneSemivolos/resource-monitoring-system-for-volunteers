@@ -44,12 +44,9 @@ class ResourceViewSet(viewsets.ModelViewSet):
             return []  # Дозволяємо всім переглядати ресурси
         return [IsAuthenticated()]  # Для інших дій потрібна автентифікація
     
-    @method_decorator(cache_page(60*5))  # Кешування на 5 хвилин
-    @method_decorator(vary_on_cookie)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
     
-    @method_decorator(cache_page(60*60))  # Кешування на 1 годину
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 

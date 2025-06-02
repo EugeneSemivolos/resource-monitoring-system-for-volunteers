@@ -23,7 +23,7 @@ const AddResourceModal = ({ open, onClose, onResourceAdded }) => {
     comment: '',
     photo: null,
     organization: '',
-    added_by: user ? `${user.firstName} ${user.lastName}` : ''
+    added_by: user ? `${user.first_name} ${user.last_name}` : ''
   });
   const [photoPreview, setPhotoPreview] = useState(null);
   const [error, setError] = useState(null);
@@ -68,7 +68,7 @@ const AddResourceModal = ({ open, onClose, onResourceAdded }) => {
     try {
       const formData = {
         ...form,
-        added_by: user ? `${user.firstName} ${user.lastName}` : ''
+        added_by: user ? `${user.first_name} ${user.last_name}` : ''
       };
       const newResource = await resourceService.addResource(formData);
       if (onResourceAdded) onResourceAdded(newResource);
@@ -81,7 +81,17 @@ const AddResourceModal = ({ open, onClose, onResourceAdded }) => {
   };
 
   const handleCancel = () => {
-    setForm({ name: '', category: '', quantity: '', unit: '', storage_location: '', comment: '', photo: null, organization: '', added_by: user ? `${user.firstName} ${user.lastName}` : '' });
+    setForm({ 
+      name: '', 
+      category: '', 
+      quantity: '', 
+      unit: '', 
+      storage_location: '', 
+      comment: '', 
+      photo: null, 
+      organization: '', 
+      added_by: user ? `${user.first_name} ${user.last_name}` : '' 
+    });
     setPhotoPreview(null);
     setError(null);
     onClose();

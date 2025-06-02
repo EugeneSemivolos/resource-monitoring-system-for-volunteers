@@ -12,9 +12,9 @@ import './ResourcesPage.css';
 import AddResourceModal from './AddResourceModal';
 import { useUser } from '../../contexts/UserContext';
 import { useLocation } from 'react-router-dom';
+import { resourceService } from '../../services/api';
 
 // Константи
-const API_URL = 'http://localhost:8000/api/resources/';
 const DEFAULT_LOCATION = 'all';
 
 // Варіанти категорій відповідно до значень на бекенді
@@ -51,33 +51,47 @@ const ResourcesPage = () => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const location = useLocation();
 
-  // Отримання ресурсів з API
-  useEffect(() => {
-    const fetchResources = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(API_URL);
-        
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        
-        const data = await response.json();
+  // Функція для отримання ресурсів з API
+  const fetchResources = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await resourceService.getResources();
+      if (data) {
         const resultsArray = processApiResponse(data);
         const formattedResources = formatResourceData(resultsArray);
-        
         setResources(formattedResources);
-      } catch (error) {
-        console.error('Error fetching resources:', error);
-        setError('Не вдалося завантажити дані про ресурси');
-      } finally {
-        setLoading(false);
       }
-    };
-    
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+      setError('Не вдалося завантажити дані про ресурси. Спробуйте оновити сторінку.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Отримання ресурсів при завантаженні сторінки
+  useEffect(() => {
     fetchResources();
-    // eslint-disable-next-line
   }, [location.key]);
+
+  // Обробка результатів пошуку
+  const handleSearchResults = (searchResults) => {
+    if (searchResults) {
+      const resultsArray = processApiResponse(searchResults);
+      const formattedResources = formatResourceData(resultsArray);
+      setResources(formattedResources);
+    }
+  };
+
+  // Обробка оновлення після редагування ресурсу
+  useEffect(() => {
+    if (location.state?.updatedResourceId) {
+      fetchResources();
+      // Очищаємо стан після оновлення
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
   
   useEffect(() => {
     if (location.state && location.state.deletedResourceId) {
@@ -188,6 +202,7 @@ const ResourcesPage = () => {
         setLocationFilter={setLocationFilter}
         categories={CATEGORIES_ARRAY}
         locations={uniqueLocations}
+        onSearch={handleSearchResults}
       />
       {isAuthenticated && (
         <div className="add-resource-container">

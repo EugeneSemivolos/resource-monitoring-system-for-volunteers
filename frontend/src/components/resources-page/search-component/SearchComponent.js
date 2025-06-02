@@ -6,11 +6,12 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Button
+  Button,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CategoryIcon from '@mui/icons-material/Category';
+import { resourceService } from '../../../services/api';
 import './SearchComponent.css';
 
 const SearchComponent = ({ 
@@ -21,7 +22,8 @@ const SearchComponent = ({
   locationFilter, 
   setLocationFilter,
   categories,
-  locations
+  locations,
+  onSearch
 }) => {
   // Конфігурація для випадаючого меню, щоб запобігти зсуву сторінки
   const menuProps = {
@@ -44,9 +46,20 @@ const SearchComponent = ({
     container: document.body
   };
 
-  const handleSearch = () => {
-    // Тут можна додати додаткову логіку пошуку при натисканні на кнопку
-    console.log("Пошук за:", searchTerm, categoryFilter, locationFilter);
+  const handleSearch = async () => {
+    try {
+      const results = await resourceService.searchResources({
+        searchTerm,
+        category: categoryFilter,
+        location: locationFilter
+      });
+      if (onSearch) {
+        onSearch(results);
+      }
+    } catch (error) {
+      console.error('Помилка при пошуку ресурсів:', error);
+      // Тут можна додати відображення помилки користувачу
+    }
   };
 
   return (
@@ -60,19 +73,12 @@ const SearchComponent = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-field"
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon color="action" />
-                  </InputAdornment>
-                ),
-              },
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSearch();
-              }
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              )
             }}
           />
         </div>

@@ -8,7 +8,8 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: false
 });
 
 // Add a request interceptor to include the token in requests if available
@@ -338,6 +339,57 @@ const resourceService = {
   updateResource: async (id, updateData) => {
     try {
       const response = await api.patch(`/resources/${id}/`, updateData);
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
+  },
+
+  // Пошук ресурсів з фільтрами
+  searchResources: async (searchParams) => {
+    try {
+      const { searchTerm, category, location } = searchParams;
+      let url = '/resources/?';
+      
+      if (searchTerm) {
+        url += `search=${encodeURIComponent(searchTerm)}&`;
+      }
+      if (category && category !== 'all') {
+        url += `category=${encodeURIComponent(category)}&`;
+      }
+      if (location && location !== 'all') {
+        url += `storage_location=${encodeURIComponent(location)}&`;
+      }
+      
+      const response = await api.get(url);
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
+  },
+
+  // Видалити ресурс
+  deleteResource: async (id) => {
+    try {
+      await api.delete(`/resources/${id}/`);
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
+  },
+
+  // Отримати список ресурсів
+  getResources: async () => {
+    try {
+      const response = await api.get('/resources/');
       return response.data;
     } catch (error) {
       if (error.response && error.response.data && error.response.data.message) {

@@ -166,17 +166,25 @@ const ResourceDetailsPage = ({ navValue, setNavValue, loginModalOpen, setLoginMo
                 }
                 setUpdateError('');
                 try {
-              if (val === 0) {
-                // Видалити ресурс
-                await fetch(`${API_URL}${resource.id}/`, { method: 'DELETE' });
-                setUpdateSuccess('Ресурс видалено!');
-                setTimeout(() => navigate('/resources', { state: { deletedResourceId: resource.id } }), 1000);
-              } else {
-                  const updated = await resourceService.updateResource(resource.id, { quantity: val });
-                  setUpdateSuccess('Кількість успішно оновлено!');
-                  setResource(prev => ({ ...prev, quantity: updated.quantity }));
-                  setTimeout(() => setUpdateModalOpen(false), 1000);
-              }
+                  if (val === 0) {
+                    // Видалити ресурс через resourceService
+                    await resourceService.deleteResource(resource.id);
+                    setUpdateSuccess('Ресурс видалено!');
+                    setTimeout(() => navigate('/resources', { state: { deletedResourceId: resource.id } }), 1000);
+                  } else {
+                    const updated = await resourceService.updateResource(resource.id, { quantity: val });
+                    setUpdateSuccess('Кількість успішно оновлено!');
+                    setResource(prev => ({ ...prev, quantity: updated.quantity }));
+                    setTimeout(() => {
+                      setUpdateModalOpen(false);
+                      // Сигналізуємо про оновлення ресурсу
+                      navigate('/resources', { 
+                        state: { 
+                          updatedResourceId: resource.id
+                        } 
+                      });
+                    }, 1000);
+                  }
                 } catch (e) {
                   setUpdateError(e.message || 'Помилка при оновленні');
                   setUpdateSuccess('');
