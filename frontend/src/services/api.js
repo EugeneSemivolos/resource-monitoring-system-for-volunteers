@@ -187,10 +187,38 @@ const volunteerService = {
     return !!localStorage.getItem('token');
   },
   
-  // Отримання даних поточного користувача
+  // Отримання даних поточного користувача з локального сховища
   getCurrentUser: () => {
     const userData = localStorage.getItem('currentUser');
     return userData ? JSON.parse(userData) : null;
+  },
+
+  // Отримання актуальних даних користувача з сервера
+  fetchCurrentUser: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      
+      if (!token || !currentUser || !currentUser.id) {
+        return null;
+      }
+      
+      const response = await api.get(`/volunteers/${currentUser.id}/`);
+      if (response.data) {
+        // Оновлюємо дані в локальному сховищі
+        localStorage.setItem('currentUser', JSON.stringify(response.data));
+        return response.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Помилка отримання даних користувача:', error);
+      if (error.response && error.response.status === 401) {
+        // Якщо токен недійсний, очищаємо локальне сховище
+        localStorage.removeItem('token');
+        localStorage.removeItem('currentUser');
+      }
+      throw error;
+    }
   },
   
   // Отримання списку волонтерів
@@ -213,6 +241,17 @@ const volunteerService = {
       } else {
         throw new Error('Помилка при формуванні запиту');
       }
+    }
+  },
+  
+  // Отримання даних волонтера за ID
+  getVolunteerById: async (id) => {
+    try {
+      const response = await api.get(`/volunteers/${id}/`);
+      return response.data;
+    } catch (error) {
+      console.error('Помилка отримання даних волонтера:', error);
+      throw error;
     }
   }
 };

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import MainPage from './components/main-page/MainPage';
-import Mission from './components/main-page/mission/Mission';
 import Navigation from './components/navigation/Navigation';
 import ResourcesPage from './components/resources-page/ResourcesPage';
 import VolunteersPage from './components/volunteers-page/VolunteersPage';
@@ -9,6 +8,8 @@ import RegisterPage from './components/auth/RegisterPage';
 import ResourceDetailsPage from './components/resources-page/resource-details/ResourceDetailsPage';
 import { UserProvider } from './contexts/UserContext';
 import HistoryPage from './components/resources-page/HistoryPage';
+import MissionPage from './components/mission-page/MissionPage';
+import ProfilePage from './components/profile/ProfilePage';
 import './App.css';
 
 // Компонент для скролу на початок при зміні маршруту
@@ -63,13 +64,14 @@ function App() {
           />
           <div className="content-wrapper">
             <Routes>
-              <Route path="/" element={<MainPage setNavValue={setNavValue} />} />
+              <Route path="/" element={<MainPage setNavValue={setNavValue} setLoginModalOpen={setLoginModalOpen} />} />
               <Route path="/resources" element={<ResourcesPage />} />
               <Route path="/volunteers" element={<VolunteersPage />} />
+              <Route path="/mission" element={<MissionPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/resources/:id" element={<ResourceDetailsPage />} />
               <Route path="/history" element={<HistoryPage navValue={navValue} setNavValue={setNavValue} loginModalOpen={loginModalOpen} setLoginModalOpen={setLoginModalOpen} />} />
-              <Route path="/mission" element={<Mission />} />
             </Routes>
           </div>
         </div>

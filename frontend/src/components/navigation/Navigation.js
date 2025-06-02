@@ -1,16 +1,34 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, IconButton, Tabs, Tab, Avatar, Menu, MenuItem } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import LoginModal from '../auth/LoginModal';
 import { useUser } from '../../contexts/UserContext';
 import './Navigation.css';
 
 const Navigation = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout, isAuthenticated } = useUser();
   const [anchorEl, setAnchorEl] = React.useState(null);
   
+  // Встановлюємо значення навігації в false, якщо ми на сторінці профілю
+  React.useEffect(() => {
+    if (location.pathname === '/profile' && setNavValue) {
+      setNavValue(false);
+    }
+  }, [location.pathname, setNavValue]);
+
+  const getPhotoUrl = () => {
+    if (!user || !user.photo) {
+      return null;
+    }
+    if (user.photo.startsWith('http')) {
+      return user.photo;
+    }
+    return `http://localhost:8000${user.photo}`;
+  };
+
   const handleLogoClick = () => {
     setNavValue && setNavValue(0);
     navigate('/');
@@ -38,8 +56,7 @@ const Navigation = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }
   };
   
   const handleProfile = () => {
-    // Тут можна додати навігацію до сторінки профіля
-    console.log('Navigate to profile');
+    navigate('/profile');
     handleMenuClose();
   };
 
@@ -92,10 +109,12 @@ const Navigation = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }
           >
             {isAuthenticated && user ? (
               <Avatar 
-                alt={`${user.firstName} ${user.lastName}`} 
-                src={user.photoUrl} 
+                alt={`${user.first_name} ${user.last_name}`} 
+                src={getPhotoUrl()}
                 className="user-avatar"
-              />
+              >
+                <AccountCircleIcon />
+              </Avatar>
             ) : (
               <AccountCircleIcon />
             )}
@@ -116,6 +135,14 @@ const Navigation = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }
           vertical: 'top',
           horizontal: 'right',
         }}
+        sx={{
+          '& .MuiPaper-root': {
+            marginTop: '8px',
+            minWidth: '200px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+          }
+        }}
+        disableScrollLock={true}
       >
         <MenuItem onClick={handleProfile}>Мій профіль</MenuItem>
         <MenuItem onClick={handleLogout}>Вийти</MenuItem>

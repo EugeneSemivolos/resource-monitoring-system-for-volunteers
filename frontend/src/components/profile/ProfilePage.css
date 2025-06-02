@@ -1,0 +1,155 @@
+.profile-container {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.profile-paper {
+  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 12px !important;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.profile-title {
+  color: #1976d2;
+  font-weight: 600 !important;
+}
+
+.edit-profile-button {
+  background-color: #1976d2;
+}
+
+.section-divider {
+  margin: 1.5rem 0 !important;
+}
+
+.profile-main-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 1.5rem 0;
+}
+
+.profile-name-container {
+  flex: 1;
+}
+
+.profile-last-name {
+  font-weight: 700 !important;
+  color: #333;
+  margin-bottom: 0.5rem !important;
+}
+
+.profile-first-name,
+.profile-middle-name {
+  color: #666;
+}
+
+.profile-middle-name {
+  font-style: italic;
+}
+
+.profile-avatar {
+  width: 140px !important;
+  height: 140px !important;
+  margin-left: 2rem;
+  background-color: #1976d2 !important;
+  border-radius: 8px !important;
+}
+
+.profile-section {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-icon {
+  color: #1976d2;
+  margin-right: 0.5rem;
+  font-size: 1.5rem !important;
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.skill-chip {
+  background-color: #e3f2fd !important;
+  color: #1976d2 !important;
+}
+
+.profile-description {
+  white-space: pre-line;
+  color: #666;
+}
+
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.contact-icon {
+  color: #1976d2;
+}
+
+.system-info {
+  background-color: #f5f5f5;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+/* Адаптивний дизайн */
+@media (max-width: 600px) {
+  .profile-container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .profile-paper {
+    padding: 1rem;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .profile-main-info {
+    flex-direction: column-reverse;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-avatar {
+    margin: 0 0 1rem 0;
+  }
+
+  .profile-name-container {
+    text-align: center;
+  }
+} 

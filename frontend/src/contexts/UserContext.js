@@ -14,12 +14,19 @@ export const UserProvider = ({ children }) => {
 
   // перевірка при монтуванні компонента, чи користувач вже ввійшов
   useEffect(() => {
-    const checkLoggedInUser = () => {
-      const currentUser = volunteerService.getCurrentUser();
-      if (currentUser) {
-        setUser(currentUser);
+    const checkLoggedInUser = async () => {
+      try {
+        const currentUser = volunteerService.getCurrentUser();
+        if (currentUser && currentUser.id) {
+          // Отримуємо актуальні дані з сервера
+          const userData = await volunteerService.getVolunteerById(currentUser.id);
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error('Помилка при отриманні даних користувача:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     checkLoggedInUser();
@@ -29,7 +36,11 @@ export const UserProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const response = await volunteerService.loginVolunteer(credentials);
-      setUser(response.volunteer);
+      if (response.volunteer) {
+        // Отримуємо повні дані волонтера після успішного входу
+        const userData = await volunteerService.getVolunteerById(response.volunteer.id);
+        setUser(userData);
+      }
       return response;
     } catch (error) {
       throw error;
@@ -45,6 +56,7 @@ export const UserProvider = ({ children }) => {
   // оновлення даних користувача
   const updateUser = (userData) => {
     setUser(userData);
+    // Оновлюємо дані в локальному сховищі
     localStorage.setItem('currentUser', JSON.stringify(userData));
   };
 
