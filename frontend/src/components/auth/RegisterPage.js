@@ -177,10 +177,7 @@ const RegisterPage = () => {
   );
 
   return (
-    <div className="app-wrapper parallax-container">
-      <div className="parallax-background" />
-      <div className="parallax-overlay" />
-      
+    <div className="app-wrapper">
       <Container maxWidth="sm" className="register-page-container">
         <Paper elevation={3} className="register-page-paper">
           <Typography variant="h4" component="h1" align="center" className="register-page-title">

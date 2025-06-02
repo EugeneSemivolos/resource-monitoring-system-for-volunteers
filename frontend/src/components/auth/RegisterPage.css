@@ -121,32 +121,6 @@
   margin-bottom: var(--field-spacing);
 }
 
-/* Parallax Background */
-.parallax-background {
-  position: fixed;
-  top: -40%;
-  width: 100%;
-  height: 150%;
-  background-image: url('../../images/volunteers.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  z-index: -1;
-  opacity: 0.15;
-  transition: none;
-  will-change: transform;
-}
-
-.parallax-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--overlay-color);
-  z-index: -1;
-}
-
 /* Responsive Design */
 @media (max-width: 600px) {
   .register-page-container {
@@ -161,12 +135,5 @@
 
   .form-actions {
     flex-direction: column;
-  }
-}
-
-@media (min-width: 1200px) {
-  .parallax-background {
-    left: -15%;
-    width: 130%;
   }
 } 
