@@ -11,6 +11,7 @@ export const useUser = () => useContext(UserContext);
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [shouldRefreshVolunteers, setShouldRefreshVolunteers] = useState(false);
 
   // перевірка при монтуванні компонента, чи користувач вже ввійшов
   useEffect(() => {
@@ -60,6 +61,8 @@ export const UserProvider = ({ children }) => {
     setUser(userData);
     // Оновлюємо дані в локальному сховищі
     localStorage.setItem('currentUser', JSON.stringify(userData));
+    // Встановлюємо флаг для оновлення списку волонтерів
+    setShouldRefreshVolunteers(true);
   };
 
   // значення контексту
@@ -69,6 +72,8 @@ export const UserProvider = ({ children }) => {
     login,
     logout,
     updateUser,
+    shouldRefreshVolunteers,
+    setShouldRefreshVolunteers,
     isAuthenticated: !!user
   };
 

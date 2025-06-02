@@ -11,6 +11,7 @@ import VolunteerSearchComponent from './volunteer-search/VolunteerSearchComponen
 import VolunteerCard from './volunteer-card/VolunteerCard';
 import { volunteerService } from '../../services/api';
 import { useLocation } from 'react-router-dom';
+import { useUser } from '../../contexts/UserContext';
 import './VolunteersPage.css';
 
 const VolunteersPage = () => {
@@ -20,6 +21,7 @@ const VolunteersPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const location = useLocation();
+  const { shouldRefreshVolunteers, setShouldRefreshVolunteers } = useUser();
 
   // Функція для отримання даних про волонтерів
   const fetchVolunteers = async () => {
@@ -42,14 +44,15 @@ const VolunteersPage = () => {
     fetchVolunteers();
   }, []);
 
-  // Оновлення при зміні location state (наприклад, після реєстрації)
+  // Оновлення при зміні location state або глобального стану оновлення
   useEffect(() => {
-    if (location.state?.refresh) {
+    if (location.state?.refresh || shouldRefreshVolunteers) {
       fetchVolunteers();
-      // Очищаємо стан після оновлення
+      // Очищаємо стани після оновлення
       window.history.replaceState({}, document.title);
+      setShouldRefreshVolunteers(false);
     }
-  }, [location.state]);
+  }, [location.state, shouldRefreshVolunteers, setShouldRefreshVolunteers]);
   
   // Допоміжна функція для обробки відповіді API (обробка пагінації)
   const processApiResponse = (data) => {
