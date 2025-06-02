@@ -253,6 +253,41 @@ const volunteerService = {
       console.error('Помилка отримання даних волонтера:', error);
       throw error;
     }
+  },
+
+  // Оновлення даних волонтера
+  updateVolunteer: async (id, formData) => {
+    try {
+      const response = await api.patch(`/volunteers/${id}/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      // Оновлюємо дані в локальному сховищі
+      if (response.data) {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const updatedUser = { ...currentUser, ...response.data };
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Помилка при оновленні профілю:', error);
+      
+      if (error.response && error.response.data) {
+        if (typeof error.response.data === 'object') {
+          const errorMessage = Object.entries(error.response.data)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join('; ');
+          throw new Error(errorMessage);
+        } else {
+          throw new Error(error.response.data);
+        }
+      }
+      
+      throw new Error('Помилка при оновленні профілю');
+    }
   }
 };
 

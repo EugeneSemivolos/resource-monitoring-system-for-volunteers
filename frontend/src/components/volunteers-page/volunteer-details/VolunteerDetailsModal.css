@@ -74,15 +74,33 @@
   margin: 10px 0;
 }
 
+.volunteer-details-modal .contact-info {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .volunteer-details-modal .contact-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 12px;
+  margin-bottom: 0;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+  width: 100%;
 }
 
-.volunteer-details-modal .contact-item:last-child {
-  margin-bottom: 0;
+.volunteer-details-modal .contact-item .MuiSvgIcon-root {
+  color: #1976d2;
+  flex-shrink: 0;
+}
+
+.volunteer-details-modal .contact-item Typography {
+  flex: 1;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .volunteer-details-modal .additional-info p {

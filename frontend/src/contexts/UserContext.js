@@ -49,7 +49,9 @@ export const UserProvider = ({ children }) => {
 
   // функція виходу
   const logout = () => {
+    // Очищаємо дані користувача в сервісі
     volunteerService.logoutVolunteer();
+    // Очищаємо стан користувача в контексті
     setUser(null);
   };
 

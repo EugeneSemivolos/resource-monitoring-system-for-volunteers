@@ -20,36 +20,41 @@ import BusinessIcon from '@mui/icons-material/Business';
 import BuildIcon from '@mui/icons-material/Build';
 import EditIcon from '@mui/icons-material/Edit';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { useUser } from '../../contexts/UserContext';
 import { volunteerService } from '../../services/api';
+import EditProfileForm from './EditProfileForm';
 import './ProfilePage.css';
 
+const formatDate = (dateString) => {
+  if (!dateString) return 'не вказано';
+  return new Date(dateString).toLocaleString('uk-UA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
 const ProfilePage = () => {
-  const { user } = useUser(); // Використовуємо тільки для перевірки авторизації
+  const { user, updateUser } = useUser();
   const [volunteerData, setVolunteerData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [lastUpdate, setLastUpdate] = useState(0);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const fetchVolunteerData = useCallback(async (isManualRefresh = false) => {
-    const now = Date.now();
-    if (!isManualRefresh && now - lastUpdate < 5000) {
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
       
-      // Отримуємо ID з локального сховища
-      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-      if (!currentUser || !currentUser.id) {
+      if (!user || !user.id) {
         throw new Error('Не вдалося визначити ID користувача');
       }
 
-      const response = await volunteerService.getVolunteerById(currentUser.id);
+      const response = await volunteerService.getVolunteerById(user.id);
       setVolunteerData(response);
-      setLastUpdate(now);
     } catch (err) {
       console.error('Помилка при завантаженні даних профілю:', err);
       if (err.response && err.response.status === 404) {
@@ -62,7 +67,7 @@ const ProfilePage = () => {
     } finally {
       setLoading(false);
     }
-  }, [lastUpdate]);
+  }, [user]);
 
   useEffect(() => {
     fetchVolunteerData();
@@ -70,6 +75,19 @@ const ProfilePage = () => {
 
   const handleManualRefresh = () => {
     fetchVolunteerData(true);
+  };
+
+  const handleEditClick = () => {
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditClose = () => {
+    setIsEditModalOpen(false);
+  };
+
+  const handleProfileUpdate = (updatedData) => {
+    setVolunteerData(updatedData);
+    updateUser(updatedData);
   };
 
   if (!user) {
@@ -147,21 +165,6 @@ const ProfilePage = () => {
     return Array.isArray(skills) ? skills : [];
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'не вказано';
-    try {
-      return new Date(dateString).toLocaleString('uk-UA', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (e) {
-      return 'не вказано';
-    }
-  };
-
   const formatPhone = (phone) => {
     if (!phone) return 'не вказано';
     const cleaned = phone.replace(/\D/g, '');
@@ -182,6 +185,7 @@ const ProfilePage = () => {
             variant="contained"
             startIcon={<EditIcon />}
             className="edit-profile-button"
+            onClick={handleEditClick}
           >
             Редагувати профіль
           </Button>
@@ -190,6 +194,16 @@ const ProfilePage = () => {
         <Divider className="section-divider" />
 
         <Box className="profile-main-info">
+          <Box className="profile-avatar-container">
+            <Avatar
+              src={getPhotoUrl()}
+              onError={handleImageError}
+              className="profile-avatar"
+            >
+              <PersonIcon />
+            </Avatar>
+          </Box>
+
           <Box className="profile-name-container">
             <Typography variant="h5" className="profile-last-name">
               {volunteerData.last_name || 'Прізвище не вказано'}
@@ -198,98 +212,117 @@ const ProfilePage = () => {
               {volunteerData.first_name || 'Ім\'я не вказано'}
             </Typography>
             {volunteerData.middle_name && (
-              <Typography variant="h6" className="profile-middle-name">
+              <Typography variant="subtitle1" className="profile-middle-name">
                 {volunteerData.middle_name}
               </Typography>
             )}
           </Box>
-          <Avatar 
-            src={getPhotoUrl()} 
-            alt={`${volunteerData.first_name || ''} ${volunteerData.last_name || ''}`}
-            className="profile-avatar"
-            onError={handleImageError}
-          >
-            <PersonIcon />
-          </Avatar>
         </Box>
 
-        <Divider className="section-divider" />
-
-        {volunteerData.organization && (
-          <>
-            <Box className="profile-section">
-              <Box className="section-header">
-                <BusinessIcon className="section-icon" />
-                <Typography variant="h6">Організація</Typography>
+        <Box className="profile-details">
+          <Box className="profile-section">
+            <Typography variant="h6" gutterBottom>
+              Контактна інформація
+            </Typography>
+            <Box className="contact-info">
+              <Box className="contact-item">
+                <EmailIcon />
+                <Typography>{volunteerData.email}</Typography>
               </Box>
-              <Typography>{volunteerData.organization}</Typography>
+              <Box className="contact-item">
+                <PhoneIcon />
+                <Typography>{formatPhone(volunteerData.phone)}</Typography>
+              </Box>
+              {volunteerData.telegram_id && (
+                <Box className="contact-item">
+                  <TelegramIcon />
+                  <Typography>{volunteerData.telegram_id}</Typography>
+                </Box>
+              )}
             </Box>
-            <Divider className="section-divider" />
-          </>
-        )}
+          </Box>
 
-        {parseSkills(volunteerData.skills).length > 0 && (
-          <>
+          {volunteerData.organization && (
             <Box className="profile-section">
-              <Box className="section-header">
-                <BuildIcon className="section-icon" />
-                <Typography variant="h6">Навички</Typography>
-              </Box>
-              <Box className="skills-list">
-                {parseSkills(volunteerData.skills).map((skill, index) => (
-                  <Chip 
-                    key={index} 
-                    label={skill} 
-                    className="skill-chip"
-                  />
-                ))}
+              <Typography variant="h6" gutterBottom>
+                Організація
+              </Typography>
+              <Box className="organization-info">
+                <BusinessIcon />
+                <Typography>{volunteerData.organization}</Typography>
               </Box>
             </Box>
-            <Divider className="section-divider" />
-          </>
-        )}
+          )}
 
-        {volunteerData.description && (
-          <>
+          {volunteerData.skills && (
             <Box className="profile-section">
-              <Typography variant="h6" gutterBottom>Опис</Typography>
+              <Typography variant="h6" gutterBottom>
+                Навички
+              </Typography>
+              <Box className="skills-container">
+                <BuildIcon />
+                <Box className="skills-chips">
+                  {parseSkills(volunteerData.skills).map((skill, index) => (
+                    <Chip
+                      key={index}
+                      label={skill}
+                      className="skill-chip"
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </Box>
+          )}
+
+          {volunteerData.description && (
+            <Box className="profile-section">
+              <Typography variant="h6" gutterBottom>
+                Про мене
+              </Typography>
               <Typography className="profile-description">
                 {volunteerData.description}
               </Typography>
             </Box>
-            <Divider className="section-divider" />
-          </>
-        )}
+          )}
 
-        <Box className="profile-section">
-          <Typography variant="h6" gutterBottom>Контакти</Typography>
-          <Box className="contact-list">
-            <Box className="contact-item">
-              <EmailIcon className="contact-icon" />
-              <Typography>{volunteerData.email || 'не вказано'}</Typography>
-            </Box>
-            <Box className="contact-item">
-              <PhoneIcon className="contact-icon" />
-              <Typography>{formatPhone(volunteerData.phone)}</Typography>
-            </Box>
-            <Box className="contact-item">
-              <TelegramIcon className="contact-icon" />
-              <Typography>
-                {volunteerData.telegram_id ? `@${volunteerData.telegram_id}` : 'не вказано'}
-              </Typography>
+          <Box className="profile-section">
+            <Typography variant="h6" gutterBottom>
+              Системна інформація
+            </Typography>
+            <Box className="system-info">
+              <Box className="info-item">
+                <AccessTimeIcon />
+                <Box>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Дата реєстрації
+                  </Typography>
+                  <Typography>
+                    {formatDate(volunteerData.registration_date)}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box className="info-item">
+                <AccessTimeIcon />
+                <Box>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Останній вхід
+                  </Typography>
+                  <Typography>
+                    {formatDate(volunteerData.last_login)}
+                  </Typography>
+                </Box>
+              </Box>
             </Box>
           </Box>
         </Box>
-
-        <Box className="profile-section system-info">
-          <Typography variant="subtitle2">
-            <strong>Дата реєстрації:</strong> {formatDate(volunteerData.registration_date)}
-          </Typography>
-          <Typography variant="subtitle2">
-            <strong>Останній вхід:</strong> {formatDate(volunteerData.last_login)}
-          </Typography>
-        </Box>
       </Paper>
+
+      <EditProfileForm
+        open={isEditModalOpen}
+        onClose={handleEditClose}
+        volunteerData={volunteerData}
+        onUpdate={handleProfileUpdate}
+      />
     </Container>
   );
 };

@@ -35,6 +35,15 @@ const VolunteerDetailsModal = ({ volunteer, open, onClose }) => {
     e.target.src = null;
   };
 
+  const formatPhone = (phone) => {
+    if (!phone) return 'не вказано';
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 10) {
+      return `+38 (${cleaned.slice(0,3)}) ${cleaned.slice(3,6)}-${cleaned.slice(6,8)}-${cleaned.slice(8)}`;
+    }
+    return phone;
+  };
+
   return (
     <Dialog 
       open={open} 
@@ -139,21 +148,36 @@ const VolunteerDetailsModal = ({ volunteer, open, onClose }) => {
         {/* Контакти */}
         <Box className="contact-info">
           <Typography variant="h6" gutterBottom>
-            Контакти
+            Контактна інформація
           </Typography>
           <Box className="contact-item">
             <EmailIcon />
-            <Typography>{volunteer.email}</Typography>
+            <Box>
+              <Typography variant="subtitle2" color="textSecondary">
+                Email
+              </Typography>
+              <Typography>{volunteer.email}</Typography>
+            </Box>
           </Box>
           <Box className="contact-item">
             <PhoneIcon />
-            <Typography>{volunteer.phone}</Typography>
+            <Box>
+              <Typography variant="subtitle2" color="textSecondary">
+                Телефон
+              </Typography>
+              <Typography>{formatPhone(volunteer.phone)}</Typography>
+            </Box>
           </Box>
           <Box className="contact-item">
             <TelegramIcon />
-            <Typography>
-              {volunteer.telegram_id ? volunteer.telegram_id : 'не вказано'}
-            </Typography>
+            <Box>
+              <Typography variant="subtitle2" color="textSecondary">
+                Telegram
+              </Typography>
+              <Typography>
+                {volunteer.telegram_id ? `${volunteer.telegram_id}` : 'не вказано'}
+              </Typography>
+            </Box>
           </Box>
         </Box>
 

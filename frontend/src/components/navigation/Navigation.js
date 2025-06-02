@@ -53,6 +53,8 @@ const Navigation = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen }
   const handleLogout = () => {
     logout();
     handleMenuClose();
+    navigate('/');
+    setNavValue && setNavValue(0);
   };
   
   const handleProfile = () => {
