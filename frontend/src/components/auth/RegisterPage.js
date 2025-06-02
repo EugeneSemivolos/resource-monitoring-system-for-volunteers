@@ -115,7 +115,13 @@ const RegisterPage = () => {
       await volunteerService.registerVolunteer(formData);
       
       // Перенаправлення на домашню сторінку з відкритим модальним вікном входу
-      navigate('/', { state: { showLoginModal: true } });
+      // та станом для оновлення списку волонтерів
+      navigate('/', { 
+        state: { 
+          showLoginModal: true,
+          refresh: true  // Додаємо флаг для оновлення списку волонтерів
+        } 
+      });
     } catch (error) {
       // Обробка конкретних випадків помилок
       if (error.response && error.response.data && error.response.data.message) {

@@ -33,6 +33,16 @@
   font-weight: 600 !important;
 }
 
+.volunteers-controls {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.volunteers-controls .volunteer-search-container {
+  flex: 1;
+}
+
 .volunteers-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -77,5 +87,9 @@
   
   .header-title {
     font-size: 1.5rem !important;
+  }
+
+  .volunteers-controls {
+    flex-direction: column;
   }
 } 

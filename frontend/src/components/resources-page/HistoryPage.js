@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Select, MenuItem, TextField, Button } from '@mui/material';
+import './HistoryPage.css';
 
 const SUBJECT_OPTIONS = [
   { value: '', label: 'Всі обʼєкти' },
@@ -58,30 +59,47 @@ const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen 
     fetchLogs(false, offset);
   };
 
+  // Конфігурація для випадаючого меню, щоб запобігти зсуву сторінки
+  const menuProps = {
+    PaperProps: {
+      style: {
+        maxHeight: 300,
+      }
+    },
+    disableScrollLock: true,
+    MenuListProps: {
+      style: {
+        paddingTop: 0,
+        paddingBottom: 0
+      }
+    },
+    container: document.body
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom sx={{ background: '#fff', borderRadius: 2, boxShadow: 1, p: 2 }}>Історія змін</Typography>
       <Box
         component="form"
         onSubmit={handleFilter}
-        mb={3}
-        sx={{
-          background: '#fff',
-          borderRadius: 2,
-          boxShadow: 1,
-          p: 2,
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 2,
-          minHeight: 64,
-        }}
+        className="history-filters"
       >
-        <Select value={subject} onChange={e => setSubject(e.target.value)} displayEmpty sx={{ minWidth: 150 }}>
+        <Select 
+          value={subject} 
+          onChange={e => setSubject(e.target.value)} 
+          displayEmpty 
+          className="filter-select"
+          MenuProps={menuProps}
+        >
           {SUBJECT_OPTIONS.map(opt => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
         </Select>
-        <Select value={action} onChange={e => setAction(e.target.value)} displayEmpty sx={{ minWidth: 150 }}>
+        <Select 
+          value={action} 
+          onChange={e => setAction(e.target.value)} 
+          displayEmpty 
+          className="filter-select"
+          MenuProps={menuProps}
+        >
           {ACTION_OPTIONS.map(opt => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
         </Select>
         <TextField
@@ -90,7 +108,7 @@ const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen 
           InputLabelProps={{ shrink: true }}
           value={dateFrom}
           onChange={e => setDateFrom(e.target.value)}
-          sx={{ minWidth: 150 }}
+          className="filter-date"
         />
         <TextField
           type="date"
@@ -98,9 +116,16 @@ const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen 
           InputLabelProps={{ shrink: true }}
           value={dateTo}
           onChange={e => setDateTo(e.target.value)}
-          sx={{ minWidth: 150 }}
+          className="filter-date"
         />
-        <Button type="submit" variant="contained" color="primary" sx={{ minWidth: 150, height: 40 }}>Фільтрувати</Button>
+        <Button 
+          type="submit" 
+          variant="contained" 
+          color="primary" 
+          className="filter-button"
+        >
+          Фільтрувати
+        </Button>
       </Box>
       <TableContainer component={Paper}>
         <Table>
@@ -139,7 +164,7 @@ const HistoryPage = ({ navValue, setNavValue, loginModalOpen, setLoginModalOpen 
             disabled={loading} 
             variant="contained" 
             color="primary" 
-            sx={{ minWidth: 150, height: 40 }}
+            className="load-more-button"
           >
             Показати ще
           </Button>

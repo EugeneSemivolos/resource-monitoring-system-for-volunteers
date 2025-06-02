@@ -3,11 +3,14 @@ import {
   Container,
   Typography,
   CircularProgress,
+  Button,
 } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import VolunteerSearchComponent from './volunteer-search/VolunteerSearchComponent';
 import VolunteerCard from './volunteer-card/VolunteerCard';
 import { volunteerService } from '../../services/api';
+import { useLocation } from 'react-router-dom';
 import './VolunteersPage.css';
 
 const VolunteersPage = () => {
@@ -16,25 +19,37 @@ const VolunteersPage = () => {
   const [volunteers, setVolunteers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const location = useLocation();
 
-  // Отримання даних про волонтерів з API
+  // Функція для отримання даних про волонтерів
+  const fetchVolunteers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await volunteerService.getVolunteers();
+      const resultsArray = processApiResponse(data);
+      setVolunteers(resultsArray);
+    } catch (error) {
+      console.error('Помилка при завантаженні даних:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Отримання даних про волонтерів при завантаженні сторінки
   useEffect(() => {
-    const fetchVolunteers = async () => {
-      try {
-        setLoading(true);
-        const data = await volunteerService.getVolunteers();
-        const resultsArray = processApiResponse(data);
-        setVolunteers(resultsArray);
-      } catch (error) {
-        console.error('Помилка при завантаженні даних:', error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchVolunteers();
   }, []);
+
+  // Оновлення при зміні location state (наприклад, після реєстрації)
+  useEffect(() => {
+    if (location.state?.refresh) {
+      fetchVolunteers();
+      // Очищаємо стан після оновлення
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
   
   // Допоміжна функція для обробки відповіді API (обробка пагінації)
   const processApiResponse = (data) => {
@@ -86,13 +101,31 @@ const VolunteersPage = () => {
   
   const renderError = () => (
     <div className="volunteers-error">
-      <Typography color="error">{error}</Typography>
+      <Typography color="error">
+        {error}
+        <Button
+          startIcon={<RefreshIcon />}
+          onClick={fetchVolunteers}
+          color="primary"
+          style={{ marginLeft: '1rem' }}
+        >
+          Оновити
+        </Button>
+      </Typography>
     </div>
   );
   
   const renderNoResults = () => (
     <div className="volunteers-no-results">
       <Typography variant="body1">Волонтерів не знайдено</Typography>
+      <Button
+        startIcon={<RefreshIcon />}
+        onClick={fetchVolunteers}
+        color="primary"
+        style={{ marginTop: '1rem' }}
+      >
+        Оновити список
+      </Button>
     </div>
   );
   
@@ -111,10 +144,12 @@ const VolunteersPage = () => {
     <Container maxWidth="lg" className="volunteers-container">
       {renderHeader()}
 
-      <VolunteerSearchComponent 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
+      <div className="volunteers-controls">
+        <VolunteerSearchComponent 
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
+      </div>
 
       {loading ? renderLoading() :
        error ? renderError() :
