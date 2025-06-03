@@ -1,10 +1,11 @@
-import React from 'react';
-import { Typography, Container, Box } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Typography, Container, Box, Alert, Snackbar } from '@mui/material';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import PeopleIcon from '@mui/icons-material/People';
 import CategoryIcon from '@mui/icons-material/Category';
 import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
+import { useLocation, useNavigate } from 'react-router-dom';
 import Mission from './mission/Mission';
 import CarouselCard from './carousel-card/CarouselCard';
 import WelcomeSection from './welcome-section/WelcomeSection';
@@ -69,6 +70,29 @@ const CAROUSEL_SETTINGS = {
 };
 
 const MainPage = ({ setNavValue }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const registrationSuccess = location.state?.registrationSuccess;
+  const message = location.state?.message;
+
+  useEffect(() => {
+    if (registrationSuccess && message) {
+      setSnackbarMessage(message);
+      setOpenSnackbar(true);
+      // Очищаємо стан location після показу повідомлення
+      navigate('/', { replace: true });
+    }
+  }, [registrationSuccess, message, navigate]);
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
+
   const renderMissionSection = () => (
       <Box className="content-box">
         <Typography variant="h4" gutterBottom className="section-title">
@@ -110,16 +134,39 @@ const MainPage = ({ setNavValue }) => {
 
   return (
     <Container maxWidth={false} className="main-page-container">
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ 
+          top: '80px !important',
+          zIndex: 1000
+        }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar}
+          severity="success"
+          variant="filled"
+          sx={{ 
+            width: '100%', 
+            maxWidth: '600px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+          }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
       <div className="welcome-section">
         <WelcomeSection setNavValue={setNavValue} />
       </div>
       {renderMissionSection()}
       {renderCarouselSection()}
       <div className="mission-section">
-      <Mission />
+        <Mission />
       </div>
       <div className="join-us-section">
-      <JoinUsSection />
+        <JoinUsSection />
       </div>
     </Container>
   );

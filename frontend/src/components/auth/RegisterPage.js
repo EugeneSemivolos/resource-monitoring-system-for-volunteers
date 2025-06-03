@@ -114,14 +114,17 @@ const RegisterPage = () => {
     
     try {
       await volunteerService.registerVolunteer(formData);
+      
+      // Показуємо успішне повідомлення
       navigate('/', { 
         state: { 
-          showLoginModal: true,
-          refresh: true
+          showLoginModal: false,
+          registrationSuccess: true,
+          message: 'Реєстрація пройшла успішно! Очікуйте підтвердження від адміністратора системи для можливості авторизації.'
         } 
       });
     } catch (error) {
-      setError(error.response?.data?.message || 'Помилка при реєстрації. Спробуйте ще раз.');
+      setError(error.message || 'Помилка при реєстрації. Спробуйте ще раз.');
       setIsSubmitting(false);
     }
   };
