@@ -11,7 +11,12 @@ import {
   Button,
   Skeleton,
   CircularProgress,
-  Alert
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText
 } from '@mui/material';
 import {
   Email as EmailIcon,
@@ -22,11 +27,13 @@ import {
   Build as BuildIcon,
   Edit as EditIcon,
   Refresh as RefreshIcon,
-  AccessTime as AccessTimeIcon
+  AccessTime as AccessTimeIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useUser } from '../../contexts/UserContext';
 import { volunteerService } from '../../services/api';
 import EditProfileForm from './EditProfileForm';
+import { useNavigate } from 'react-router-dom';
 import './ProfilePage.css';
 
 const formatDate = (dateString) => {
@@ -58,11 +65,14 @@ const parseSkills = (skills) => {
 };
 
 const ProfilePage = () => {
-  const { user, updateUser } = useUser();
+  const navigate = useNavigate();
+  const { user, updateUser, logout } = useUser();
   const [volunteerData, setVolunteerData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchVolunteerData = useCallback(async () => {
     if (!user?.id) {
@@ -103,6 +113,18 @@ const ProfilePage = () => {
     if (!photo) return null;
     return photo.startsWith('http') ? photo : `http://localhost:8000${photo}`;
   }, []);
+
+  const handleDeleteAccount = async () => {
+    try {
+      setIsDeleting(true);
+      await volunteerService.deleteVolunteer(user.id);
+      logout();
+      navigate('/');
+    } catch (error) {
+      setError(error.message);
+      setIsDeleting(false);
+    }
+  };
 
   const renderContactInfo = () => (
     <Box className="profile-section">
@@ -204,6 +226,17 @@ const ProfilePage = () => {
               {formatDate(volunteerData.last_login)}
             </Typography>
           </Box>
+        </Box>
+        <Box className="info-item delete-account">
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={() => setIsDeleteDialogOpen(true)}
+            fullWidth
+          >
+            Видалити акаунт
+          </Button>
         </Box>
       </Box>
     </Box>
@@ -314,6 +347,34 @@ const ProfilePage = () => {
           {renderSystemInfo()}
         </Box>
       </Paper>
+
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={() => !isDeleting && setIsDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Підтвердження видалення акаунту</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Ви впевнені, що хочете видалити свій акаунт? Ця дія є незворотною і призведе до втрати всіх ваших даних.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setIsDeleteDialogOpen(false)} 
+            disabled={isDeleting}
+          >
+            Скасувати
+          </Button>
+          <Button
+            onClick={handleDeleteAccount}
+            color="error"
+            disabled={isDeleting}
+            startIcon={isDeleting ? <CircularProgress size={20} /> : <DeleteIcon />}
+          >
+            {isDeleting ? 'Видалення...' : 'Видалити'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <EditProfileForm
         open={isEditModalOpen}

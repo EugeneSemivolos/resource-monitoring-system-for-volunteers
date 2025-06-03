@@ -190,6 +190,14 @@ class VolunteerViewSet(ActionLoggingMixin, viewsets.ModelViewSet):
                 # Створюємо волонтера
                 volunteer = serializer.save(user=user)
                 
+                # Створюємо запис в історії змін з системою як виконавцем
+                ActionLog.objects.create(
+                    action='added',
+                    subject='volunteer',
+                    description=f"Додано нового волонтера: {volunteer.first_name} {volunteer.last_name} (ID: {volunteer.id})",
+                    performer='Система'
+                )
+                
                 # Створюємо токен для користувача
                 token = Token.objects.create(user=user)
                 

@@ -289,6 +289,22 @@ const volunteerService = {
       
       throw new Error('Помилка при оновленні профілю');
     }
+  },
+
+  // Видалення акаунту волонтера
+  deleteVolunteer: async (id) => {
+    try {
+      await api.delete(`/volunteers/${id}/`);
+      // Очищаємо дані користувача з локального сховища
+      localStorage.removeItem('token');
+      localStorage.removeItem('currentUser');
+    } catch (error) {
+      console.error('Помилка при видаленні акаунту:', error);
+      if (error.response && error.response.data) {
+        throw new Error(error.response.data.message || 'Помилка при видаленні акаунту');
+      }
+      throw new Error('Помилка при видаленні акаунту');
+    }
   }
 };
 
