@@ -2,7 +2,7 @@ import React from 'react';
 import { Typography, Container, Box } from '@mui/material';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import PeopleIcon from '@mui/icons-material/People';
-import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import CategoryIcon from '@mui/icons-material/Category';
 import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import Mission from './mission/Mission';
@@ -40,16 +40,16 @@ const CARDS_DATA = [
     }
   },
   {
-    id: 'curators',
-    icon: <SupervisorAccountIcon className="card-icon curator-icon" />,
-    name: "Куратори проекту",
+    id: 'categories',
+    icon: <CategoryIcon className="card-icon curator-icon" />,
+    name: "Категорії ресурсів",
     description: {
-      title: "Наші куратори забезпечують:",
+      title: "Зручна система категорій:",
       items: [
-        "Відстеження активності волонтерів",
-        "Зв'язок для координації спільних дій",
-        "Підтримку з питань волонтерства",
-        "Допомогу у вирішенні організаційних питань"
+        "Медичні засоби та ліки",
+        "Продукти харчування",
+        "Одяг та спорядження",
+        "Технічне обладнання"
       ]
     }
   }
