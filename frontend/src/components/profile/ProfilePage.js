@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import PropTypes from 'prop-types';
 import {
   Container,
   Typography,
@@ -9,7 +8,6 @@ import {
   Divider,
   Paper,
   Button,
-  Skeleton,
   CircularProgress,
   Alert,
   Dialog,
