@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 # Побудова шляхів всередині проекту таким чином: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -6,12 +7,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-vr40--!u5o_1f7^_35cmwiq8r7(!17m*%n27jwv8_9_s0z%p1u'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-vr40--!u5o_1f7^_35cmwiq8r7(!17m*%n27jwv8_9_s0z%p1u')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', '0').lower() in ['true', 't', '1']
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
 
 
 # Application definition
@@ -67,13 +68,19 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'volunteer_resources',
-        'USER': 'postgres',
-        'PASSWORD': '5454',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.environ.get('POSTGRES_DB', 'volunteer_resources'),
+        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', '5454'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
+
+# If using DATABASE_URL from render.com
+import dj_database_url
+db_from_env = dj_database_url.config(conn_max_age=600, default='')
+if db_from_env:
+    DATABASES['default'].update(db_from_env)
 
 
 # Валідація паролів
@@ -110,7 +117,7 @@ USE_TZ = True
 # Статичні файли (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
 
 # Медіа файли
